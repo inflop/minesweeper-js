@@ -23,3 +23,7 @@ td {
     cursor: initial;
     background-color: initial;
 }
+
+.board tr td.checked.mined {
+    background-color: red;
+}

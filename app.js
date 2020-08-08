@@ -82,8 +82,24 @@ class BoardRenderer {
             e.stopPropagation();
             return false;
         };
-        //cell.innerHTML = field.marked ? '!' : (field.checked ? '' : (field.mined ? '*' : field.minedNeighborsNumber));
-        cell.innerHTML = field.marked ? '!' : (field.mined ? '*' : field.minedNeighborsNumber);
+
+        const showInnerHtml = field.marked || (field.checked && (field.hasMinedNeighbors || field.mined));
+
+        if (showInnerHtml) {
+            let innerHtml = '';
+            if (field.marked) {
+                innerHtml = '!';
+            }
+            else if (field.hasMinedNeighbors) {
+                innerHtml = field.minedNeighborsNumber;
+            }
+            else if (field.mined) {
+                innerHtml = '*';
+            }
+
+            cell.innerHTML = innerHtml;
+        }
+
         cell.setAttribute("title", JSON.stringify(field));
         cell.setAttribute("id", field.id);
 
@@ -91,7 +107,11 @@ class BoardRenderer {
             cell.addEventListener('mouseup', (e) => this._cellClick(e), true);
         }
         else {
-            cell.className = 'checked';
+            cell.className = ' checked';
+        }
+
+        if (field.mined) {
+            cell.className += ' mined';
         }
 
         return cell;
@@ -128,11 +148,14 @@ class Board {
     checkField(fieldId) {
         let field = this._getFieldById(fieldId);
 
+        field.check();
+
         if (field.mined) {
-            throw '!!! Game over !!!';
+            return;
+            // TODO: 
+            // GAME OVER
         }
 
-        field.check();
         if (field.minedNeighborsNumber === 0) {
             this._checkNeighbors(field);
         }
@@ -159,25 +182,6 @@ class Board {
         }
     }
 
-    _checkNeighborsFields(fields) {
-        for (let i = 0; i < fields.length; i++) {
-            const field = fields[i];
-
-            if (field.mined || field.marked) {
-                continue;
-            }
-
-            field.check();
-
-            if (field.minedNeighborsNumber > 0) {
-                continue;
-            }
-
-            // const fs = this._getNeighborsFields(field);
-            // this._checkNeighborsFields(fs);
-        }
-    }
-
     _getNeighborsFields(field) {
         let neighborsFields = [];
         for (let rowIndex = field.rowIndex == 0 ? 0 : field.rowIndex - 1; rowIndex <= field.rowIndex + 1 && rowIndex < this.rows; rowIndex++) {
@@ -197,7 +201,9 @@ class Board {
                 let field = this.matrix[rowIndex][colIndex];
                 let neighborsFields = this._getNeighborsFields(field);
                 let minedNeighborsNumber = neighborsFields.filter(f => f.mined).length || 0;
-                field.setMinedNeighborsNumber(minedNeighborsNumber);
+                if (!field.mined) {
+                    field.minedNeighborsNumber = minedNeighborsNumber;
+                }                
             }
         }
     }
@@ -239,8 +245,8 @@ class Board {
         for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
             for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
                 let field = fields[fieldIndex++];
-                field.setRowIndex(rowIndex);
-                field.setColIndex(colIndex);
+                field.rowIndex = rowIndex;
+                field.colIndex = colIndex;
                 this.matrix[rowIndex][colIndex] = field;
             }
         }
@@ -260,78 +266,94 @@ class Field {
     }
 
     initializeDefaults() {
-        this.rowIndex = 0;
-        this.colIndex = 0;
-        this.marked = false;
-        this.checked = false;
-        this.minedNeighborsNumber = 0;
+        this._rowIndex = 0;
+        this._colIndex = 0;
+        this._minedNeighborsNumber = 0;
+        this._marked = false;
+        this._checked = false;
     }
 
-    setRowIndex(rowIndex) {
+    set rowIndex(rowIndex) {
         if (isNaN(rowIndex)) {
             throw 'Row index must be a number';
         }
 
-        this.rowIndex = rowIndex;
+        this._rowIndex = rowIndex;
     }
 
-    setColIndex(colIndex) {
+    get rowIndex() {
+        return this._rowIndex;
+    }
+
+    set colIndex(colIndex) {
         if (isNaN(colIndex)) {
             throw 'Column index must be a number';
         }
 
-        this.colIndex = colIndex;
+        this._colIndex = colIndex;
     }
 
-    setMinedNeighborsNumber(minedNeighborsNumber) {
-        // if (!this.checked) {
-        //     throw "The field isn't checked yet. Cannot set the mined neighbors number.";
-        // }
+    get colIndex() {
+        return this._colIndex;
+    }
 
-        // if (this.mined) {
-        //     throw 'Cannot set the mined neighbors count on mined field.';
-        // }
+    get hasMinedNeighbors() {
+        return (this._minedNeighborsNumber || 0) > 0;
+    }
 
-        this.minedNeighborsNumber = minedNeighborsNumber || 0;
+    set minedNeighborsNumber(value) {
+        if (this.mined) {
+            throw 'Cannot set the mined neighbors number on mined field.';
+        }
+
+        this._minedNeighborsNumber = value || 0;
+    }
+
+    get minedNeighborsNumber() {
+        return this._minedNeighborsNumber;
+    }
+
+    get marked() {
+        return this._marked;
     }
 
     mark() {
-        if (this.checked) {
+        if (this._checked) {
             throw `Cannot mark checked field: '${this.id}'`;
         }
 
-        if (this.marked) {
+        if (this._marked) {
             throw `The field: '${this.id}' is already marked.`;
         }
 
-        this.marked = true;
+        this._marked = true;
     }
 
     unmark() {
-        if (this.checked) {
+        if (this._checked) {
             throw `Cannot unmark checked field: '${this.id}'`;
         }
 
-        if (!this.marked) {
+        if (!this._marked) {
             throw `The field with id: '${this.id}' is already unmarked`;
         }
 
-        this.marked = false;
+        this._marked = false;
+    }
+
+    get checked() {
+        return this._checked;
     }
 
     check() {
-        // if (this.checked) {
-        //     throw `The field with: '${this.id}' is already checked`;
-        // }
-
-        if (this.marked) {
-            throw `Cannot click marked field: '${this.id}'`;
+        if (this._checked) {
+            throw `The field with: '${this.id}' is already checked`;
         }
 
-        this.checked = true;
-    }
+        if (this._marked) {
+            throw `Cannot check marked field: '${this.id}'`;
+        }
 
-    isMined() {
-        return this.mined;
+        this._checked = true;
     }
 }
