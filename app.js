@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    const rows = 4;
-    const cols = 4;
-    const minesPercent = 10;
+    const rows = 10;
+    const cols = 10;
+    const minesPercent = 20;
     let board = new Board(rows, cols, minesPercent);
 
     const createNew = () => {
         const renderer = new BoardRenderer(board);
-        renderer.refresh();
+        renderer.refreshBoard();
     };
 
     createNew();
@@ -21,10 +21,10 @@ class BoardRenderer {
         }
 
         this.board = board;
-        this._createTable();
+        this._createBoard();
     }
 
-    _createTable() {
+    _createBoard() {
         const tableId = 'board';
         this.container = document.getElementById('boardContainer');
 
@@ -35,8 +35,8 @@ class BoardRenderer {
         this.container.appendChild(this.table);
     }
 
-    _render() {
-        this._clearTable();
+    _renderBoard() {
+        this._clearBoard();
         for (let rowIndex = 0; rowIndex < this.board.matrix.length; rowIndex++) {
             const row = this._createRow(rowIndex);
             for (let colIndex = 0; colIndex < this.board.matrix[rowIndex].length; colIndex++) {
@@ -47,30 +47,27 @@ class BoardRenderer {
     }
 
     _cellClick(event) {
-        const id = event.target.id;
-        console.log(event.target);
-        console.log(id);
-
+        const fieldId = event.target.id;
         switch (event.button) {
             case 0:
-                this.board.click(id);
+                this.board.checkField(fieldId);
                 break;
             case 2:
-                this.board.mark(id);
+                this.board.markField(fieldId);
                 break;
             default:
                 break;
         }
 
-        this.refresh();
+        this.refreshBoard();
     }
 
-    _clearTable() {
+    _clearBoard() {
         this.table.innerHTML = '';
     }
 
-    refresh() {
-        this._render();
+    refreshBoard() {
+        this._renderBoard();
     }
 
     _createRow(index) {
@@ -85,16 +82,16 @@ class BoardRenderer {
             e.stopPropagation();
             return false;
         };
-        //cell.innerHTML = field.marked ? '!' : (field.clicked ? '' : (field.mined ? '*' : field.minedNeighborsNumber));
+        //cell.innerHTML = field.marked ? '!' : (field.checked ? '' : (field.mined ? '*' : field.minedNeighborsNumber));
         cell.innerHTML = field.marked ? '!' : (field.mined ? '*' : field.minedNeighborsNumber);
         cell.setAttribute("title", JSON.stringify(field));
         cell.setAttribute("id", field.id);
 
-        if (!field.clicked) {
+        if (!field.checked) {
             cell.addEventListener('mouseup', (e) => this._cellClick(e), true);
         }
         else {
-            cell.className = 'clicked';
+            cell.className = 'checked';
         }
 
         return cell;
@@ -128,23 +125,21 @@ class Board {
         this._setNeighborsMinesNumber();
     }
 
-    click(id) {
-        let field = this._getFieldById(id);
+    checkField(fieldId) {
+        let field = this._getFieldById(fieldId);
 
         if (field.mined) {
             throw '!!! Game over !!!';
         }
 
-        field.click();
-
+        field.check();
         if (field.minedNeighborsNumber === 0) {
-            //this._checkNeighborsFields(neighborsFields);
             this._checkNeighbors(field);
         }
     }
 
-    mark(id) {
-        let field = this._getFieldById(id);
+    markField(fieldId) {
+        let field = this._getFieldById(fieldId);
 
         if (field.marked) {
             field.unmark();
@@ -154,22 +149,13 @@ class Board {
         }
     }
 
-    _checkNeighbors(inputField) {
-        let neighbors = this._getNeighborsFields(inputField);
-        for (let i = 0; i < neighbors.length; i++) {
-            const currentField = neighbors[i];
-
-            if (currentField.mined || currentField.marked) {
-                continue;
-            }
-
-            currentField.click();
-
-            if (currentField.minedNeighborsNumber > 0) {
-                continue;
-            }
-
-            this._checkNeighbors(currentField);
+    _checkNeighbors(field) {
+        let neighborsFields = this._getNeighborsFields(field);
+        for (let i = 0; i < neighborsFields.length; i++) {
+            const currentField = neighborsFields[i];
+            if (!currentField.checked && !currentField.mined && !currentField.marked) {
+                this.checkField(currentField.id);
+            }            
         }
     }
 
@@ -181,7 +167,7 @@ class Board {
                 continue;
             }
 
-            field.click();
+            field.check();
 
             if (field.minedNeighborsNumber > 0) {
                 continue;
@@ -277,7 +263,7 @@ class Field {
         this.rowIndex = 0;
         this.colIndex = 0;
         this.marked = false;
-        this.clicked = false;
+        this.checked = false;
         this.minedNeighborsNumber = 0;
     }
 
@@ -298,8 +284,8 @@ class Field {
     }
 
     setMinedNeighborsNumber(minedNeighborsNumber) {
-        // if (!this.clicked) {
-        //     throw "The field isn't clicked yet. Cannot set the mined neighbors number.";
+        // if (!this.checked) {
+        //     throw "The field isn't checked yet. Cannot set the mined neighbors number.";
         // }
 
         // if (this.mined) {
@@ -310,8 +296,8 @@ class Field {
     }
 
     mark() {
-        if (this.clicked) {
-            throw `Cannot mark clicked field: '${this.id}'`;
+        if (this.checked) {
+            throw `Cannot mark checked field: '${this.id}'`;
         }
 
         if (this.marked) {
@@ -322,8 +308,8 @@ class Field {
     }
 
     unmark() {
-        if (this.clicked) {
-            throw `Cannot unmark clicked field: '${this.id}'`;
+        if (this.checked) {
+            throw `Cannot unmark checked field: '${this.id}'`;
         }
 
         if (!this.marked) {
@@ -333,16 +319,16 @@ class Field {
         this.marked = false;
     }
 
-    click() {
-        // if (this.clicked) {
-        //     throw `The field with: '${this.id}' is already clicked`;
+    check() {
+        // if (this.checked) {
+        //     throw `The field with: '${this.id}' is already checked`;
         // }
 
         if (this.marked) {
             throw `Cannot click marked field: '${this.id}'`;
         }
 
-        this.clicked = true;
+        this.checked = true;
     }
 
     isMined() {

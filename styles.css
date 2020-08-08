@@ -19,7 +19,7 @@ td {
     background-color: lightgray;
 }
 
-.board tr td.clicked {
+.board tr td.checked {
     cursor: initial;
     background-color: initial;
 }
