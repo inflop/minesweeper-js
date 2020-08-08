@@ -1,0 +1,25 @@
+html {
+    text-align: center;
+}
+
+table,
+th,
+td {
+    vertical-align: middle;
+    text-align: center;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+
+.board tr td {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background-color: lightgray;
+}
+
+.board tr td.clicked {
+    cursor: initial;
+    background-color: initial;
+}

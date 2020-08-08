@@ -1,11 +1,101 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    const rows = 5;
-    const cols = 5;
-    const minesPercent = 20;
+    const rows = 4;
+    const cols = 4;
+    const minesPercent = 10;
     let board = new Board(rows, cols, minesPercent);
-    console.log(board);
-    board._click('f_2');
+
+    const createNew = () => {
+        const renderer = new BoardRenderer(board);
+        renderer.refresh();
+    };
+
+    createNew();
+    const btnReset = document.getElementById('btnReset');
+    btnReset.addEventListener('click', (e) => createNew(), true);
 });
+
+class BoardRenderer {
+    constructor(board) {
+        if (!board) {
+            throw 'The board cannot be null';
+        }
+
+        this.board = board;
+        this._createTable();
+    }
+
+    _createTable() {
+        const tableId = 'board';
+        this.container = document.getElementById('boardContainer');
+        
+        this.table = document.getElementById(tableId) || document.createElement('table');
+        this.table.setAttribute('id', tableId);
+        this.table.className = 'board';
+        
+        this.container.appendChild(this.table);
+    }
+
+    _render() {
+        this._clearTable();
+        for (let rowIndex = 0; rowIndex < this.board.matrix.length; rowIndex++) {
+            const row = this._createRow(rowIndex);
+            for (let colIndex = 0; colIndex < this.board.matrix[rowIndex].length; colIndex++) {
+                let field = this.board.matrix[rowIndex][colIndex];
+                const cell = this._createCell(colIndex, field, row);
+            }
+        }
+    }
+
+    _cellClick(event) {
+        const id = event.target.id;
+        console.log(event.target);
+        console.log(id);
+
+        switch (event.button) {
+            case 0:
+                this.board.click(id);
+                break;
+            case 2:
+                this.board.mark(id);
+                break;
+            default:
+                break;
+        }
+
+        this.refresh();
+    }
+
+    _clearTable() {
+        this.table.innerHTML = '';
+    }
+
+    refresh() {
+        this._render();
+    }
+
+    _createRow(index) {
+        const row = this.table.insertRow(index);
+        return row;
+    }
+
+    _createCell(index, field, row) {
+        const cell = row.insertCell(index);
+        cell.addEventListener('oncontextmenu', (e) => e.preventDefault(), true);
+        //cell.innerHTML = field.marked ? '!' : (field.clicked ? '' : (field.mined ? '*' : field.minedNeighborsNumber));
+        cell.innerHTML = field.marked ? '!' : (field.mined ? '*' : field.minedNeighborsNumber);
+        cell.setAttribute("title", JSON.stringify(field));
+        cell.setAttribute("id", field.id);
+
+        if (!field.clicked) {
+            cell.addEventListener('mouseup', (e) => this._cellClick(e), true);
+        }
+        else {
+            cell.className = 'clicked';
+        }
+
+        return cell;
+    }
+}
 
 class Board {
     constructor(rows, cols, minesPercent) {
@@ -31,20 +121,80 @@ class Board {
 
         this._createMatrix();
         this._fillMatrix();
+        this._setNeighborsMinesNumber();
     }
 
-    _click(id) {
-        let field = this._searchFieldById(id);
-        field.click();
+    click(id) {
+        let field = this._getFieldById(id);
+
+        if (field.mined) {
+            throw '!!! Game over !!!';
+        }
+
         let neighborsFields = this._getNeighborsFields(field);
-        console.log(field);
-        console.log(neighborsFields);
+        field.click();
+
+        if (field.minedNeighborsNumber === 0) {
+            //this._checkNeighborsFields(neighborsFields);
+            this._checkNeighbors(field);
+        }
+
+        console.log(this.matrix);
+    }
+
+    mark(id) {
+        let field = this._getFieldById(id);
+
+        if (field.marked) {
+            field.unmark();
+        }
+        else {
+            field.mark();
+        }
+    }
+
+    _checkNeighbors(inputField) {
+        let neighbors = this._getNeighborsFields(inputField);
+        for (let i = 0; i < neighbors.length; i++) {
+            const currentField = neighbors[i];
+
+            if (currentField.mined || currentField.marked) {
+                continue;
+            }
+
+            currentField.click();
+
+            if (currentField.minedNeighborsNumber > 0) {
+                continue;
+            }
+
+            this._checkNeighbors(currentField);
+        }
+    }
+
+    _checkNeighborsFields(fields) {
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+
+            if (field.mined || field.marked) {
+                continue;
+            }
+
+            field.click();
+
+            if (field.minedNeighborsNumber > 0) {
+                continue;
+            }
+
+            // const fs = this._getNeighborsFields(field);
+            // this._checkNeighborsFields(fs);
+        }
     }
 
     _getNeighborsFields(field) {
         let neighborsFields = [];
-        for(let rowIndex = field.rowIndex == 0 ? 0 : field.rowIndex - 1; rowIndex <= field.rowIndex + 1 && rowIndex < this.rows; rowIndex++) {
-            for(let colIndex = field.colIndex == 0 ? 0 : field.colIndex - 1; colIndex <= field.colIndex + 1 && colIndex < this.cols; colIndex++) {
+        for (let rowIndex = field.rowIndex == 0 ? 0 : field.rowIndex - 1; rowIndex <= field.rowIndex + 1 && rowIndex < this.rows; rowIndex++) {
+            for (let colIndex = field.colIndex == 0 ? 0 : field.colIndex - 1; colIndex <= field.colIndex + 1 && colIndex < this.cols; colIndex++) {
                 const currentField = this.matrix[rowIndex][colIndex];
                 if (currentField.id !== field.id) {
                     neighborsFields.push(currentField);
@@ -54,7 +204,22 @@ class Board {
         return neighborsFields;
     }
 
-    _searchFieldById(id) {
+    _setNeighborsMinesNumber() {
+        for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
+            for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
+                let field = this.matrix[rowIndex][colIndex];
+                let neighborsFields = this._getNeighborsFields(field);
+                let minedNeighborsNumber = neighborsFields.filter(f => f.mined).length || 0;
+                field.setMinedNeighborsNumber(minedNeighborsNumber);
+            }
+        }
+    }
+
+    _getFieldById(id) {
+        if (!id) {
+            throw 'id is required';
+        }
+
         for (let i = 0; i < this.matrix.length; i++) {
             for (let j = 0; j < this.matrix[i].length; j++) {
                 let field = this.matrix[i][j];
@@ -110,7 +275,7 @@ class Field {
     initializeDefaults() {
         this.rowIndex = 0;
         this.colIndex = 0;
-        this.isMarked = false;
+        this.marked = false;
         this.clicked = false;
         this.minedNeighborsNumber = 0;
     }
@@ -132,9 +297,9 @@ class Field {
     }
 
     setMinedNeighborsNumber(minedNeighborsNumber) {
-        if (!this.clicked) {
-            throw "The field isn't clicked yet. Cannot set the mined neighbors number.";
-        }
+        // if (!this.clicked) {
+        //     throw "The field isn't clicked yet. Cannot set the mined neighbors number.";
+        // }
 
         // if (this.mined) {
         //     throw 'Cannot set the mined neighbors count on mined field.';
@@ -145,35 +310,35 @@ class Field {
 
     mark() {
         if (this.clicked) {
-            throw 'Cannot mark clicked field.';
+            throw `Cannot mark clicked field: '${this.id}'`;
         }
 
-        if (!this.isMarked) {
-            throw 'The field is already marked.';
+        if (this.marked) {
+            throw `The field: '${this.id}' is already marked.`;
         }
 
-        this.isMarked = true;
+        this.marked = true;
     }
 
     unmark() {
         if (this.clicked) {
-            throw 'Cannot unmark clicked field.';
+            throw `Cannot unmark clicked field: '${this.id}'`;
         }
 
-        if (!this.isMarked) {
-            throw 'The field is already unmarked.';
+        if (!this.marked) {
+            throw `The field with id: '${this.id}' is already unmarked`;
         }
 
-        this.isMarked = false;
+        this.marked = false;
     }
 
     click() {
-        if (this.clicked) {
-            throw 'The field is already clicked.';
-        }
+        // if (this.clicked) {
+        //     throw `The field with: '${this.id}' is already clicked`;
+        // }
 
-        if (this.isMarked) {
-            throw 'Cannot click marked field.';
+        if (this.marked) {
+            throw `Cannot click marked field: '${this.id}'`;
         }
 
         this.clicked = true;
