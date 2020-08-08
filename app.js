@@ -131,15 +131,12 @@ class Board {
             throw '!!! Game over !!!';
         }
 
-        let neighborsFields = this._getNeighborsFields(field);
         field.click();
 
         if (field.minedNeighborsNumber === 0) {
             //this._checkNeighborsFields(neighborsFields);
             this._checkNeighbors(field);
         }
-
-        console.log(this.matrix);
     }
 
     mark(id) {
