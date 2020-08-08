@@ -27,11 +27,11 @@ class BoardRenderer {
     _createTable() {
         const tableId = 'board';
         this.container = document.getElementById('boardContainer');
-        
+
         this.table = document.getElementById(tableId) || document.createElement('table');
         this.table.setAttribute('id', tableId);
         this.table.className = 'board';
-        
+
         this.container.appendChild(this.table);
     }
 
@@ -80,7 +80,11 @@ class BoardRenderer {
 
     _createCell(index, field, row) {
         const cell = row.insertCell(index);
-        cell.addEventListener('oncontextmenu', (e) => e.preventDefault(), true);
+        cell.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
         //cell.innerHTML = field.marked ? '!' : (field.clicked ? '' : (field.mined ? '*' : field.minedNeighborsNumber));
         cell.innerHTML = field.marked ? '!' : (field.mined ? '*' : field.minedNeighborsNumber);
         cell.setAttribute("title", JSON.stringify(field));
