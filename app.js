@@ -2,9 +2,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const rows = 10;
     const cols = 10;
     const minesPercent = 20;
-    let board = new Board(rows, cols, minesPercent);
 
     const createNew = () => {
+        let board = new Board(rows, cols, minesPercent);
         const renderer = new BoardRenderer(board);
         renderer.refreshBoard();
     };
@@ -13,6 +13,23 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const btnReset = document.getElementById('btnReset');
     btnReset.addEventListener('click', (e) => createNew(), true);
 });
+
+// const ClassNames = {
+//     MINE: 'im im-sun',
+//     MARK: 'im im-flag',
+//     INVALID_MARK: 
+// }
+
+class Game {
+    constructor(board, boardContainer) {
+        this.board = board;
+        this.boardContainer = boardContainer;
+    }
+
+    createNew() {
+        
+    }
+}
 
 class BoardRenderer {
     constructor(board) {
@@ -75,43 +92,59 @@ class BoardRenderer {
         return row;
     }
 
+    _getCellContent(field) {
+        const showInnerHtml = field.revealed || field.marked || (field.checked && (field.hasMinedNeighbors || field.mined));
+        if (!showInnerHtml) {
+            return '';
+        }
+
+        if (field.marked && !field.revealed) {
+            return '&para;';
+        }
+        
+        if (field.hasMinedNeighbors) {
+            return field.minedNeighborsNumber;
+        }
+        
+        if (field.mined) {
+            return '&bull;';
+        }        
+
+        return '';
+    }
+
     _createCell(index, field, row) {
         const cell = row.insertCell(index);
+        cell.setAttribute("id", field.id);
+        // cell.setAttribute("title", JSON.stringify(field));
+
         cell.oncontextmenu = (e) => {
             e.preventDefault();
             e.stopPropagation();
             return false;
         };
 
-        const showInnerHtml = field.marked || (field.checked && (field.hasMinedNeighbors || field.mined));
+        cell.innerHTML = this._getCellContent(field);
 
-        if (showInnerHtml) {
-            let innerHtml = '';
-            if (field.marked) {
-                innerHtml = '!';
-            }
-            else if (field.hasMinedNeighbors) {
-                innerHtml = field.minedNeighborsNumber;
-            }
-            else if (field.mined) {
-                innerHtml = '*';
-            }
-
-            cell.innerHTML = innerHtml;
-        }
-
-        cell.setAttribute("title", JSON.stringify(field));
-        cell.setAttribute("id", field.id);
-
-        if (!field.checked) {
+        const isMouseUpEventListener = !field.checked && !field.disabled;
+        if (isMouseUpEventListener) {
             cell.addEventListener('mouseup', (e) => this._cellClick(e), true);
         }
-        else {
-            cell.className = ' checked';
+
+        if (field.checked) {
+            cell.classList.add('checked');
         }
 
         if (field.mined) {
-            cell.className += ' mined';
+            cell.classList.add('mined');
+        }
+
+        if (field.revealed) {
+            cell.classList.add('revealed');
+        }
+
+        if (field.marked) {
+            cell.classList.add('marked');
         }
 
         return cell;
@@ -151,9 +184,10 @@ class Board {
         field.check();
 
         if (field.mined) {
-            return;
+            this._revealAllMines();
             // TODO: 
             // GAME OVER
+            return;
         }
 
         if (field.minedNeighborsNumber === 0) {
@@ -161,6 +195,25 @@ class Board {
         }
     }
 
+    /**
+     * Reveals and displays all mines.
+     */
+    _revealAllMines() {
+        for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
+            for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
+                let field = this.matrix[rowIndex][colIndex];
+                field.disable();
+                if (field.mined) {
+                    field.reveal();
+                }
+            }
+        }
+    }
+
+    /**
+     * Set mine flag on the field with specified ID.
+     * @param {string} fieldId 
+     */
     markField(fieldId) {
         let field = this._getFieldById(fieldId);
 
@@ -172,16 +225,24 @@ class Board {
         }
     }
 
+    /**
+     * 
+     * @param {Field} field
+     */
     _checkNeighbors(field) {
         let neighborsFields = this._getNeighborsFields(field);
         for (let i = 0; i < neighborsFields.length; i++) {
             const currentField = neighborsFields[i];
             if (!currentField.checked && !currentField.mined && !currentField.marked) {
                 this.checkField(currentField.id);
-            }            
+            }
         }
     }
 
+    /**
+     * 
+     * @param {Field} field
+     */
     _getNeighborsFields(field) {
         let neighborsFields = [];
         for (let rowIndex = field.rowIndex == 0 ? 0 : field.rowIndex - 1; rowIndex <= field.rowIndex + 1 && rowIndex < this.rows; rowIndex++) {
@@ -195,6 +256,9 @@ class Board {
         return neighborsFields;
     }
 
+    /**
+     * 
+     */
     _setNeighborsMinesNumber() {
         for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
             for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
@@ -203,26 +267,30 @@ class Board {
                 let minedNeighborsNumber = neighborsFields.filter(f => f.mined).length || 0;
                 if (!field.mined) {
                     field.minedNeighborsNumber = minedNeighborsNumber;
-                }                
+                }
             }
         }
     }
 
-    _getFieldById(id) {
-        if (!id) {
-            throw 'id is required';
+    /**
+     * 
+     * @param {string} fieldId
+     */
+    _getFieldById(fieldId) {
+        if (!fieldId) {
+            throw 'Field ID is required';
         }
 
         for (let i = 0; i < this.matrix.length; i++) {
             for (let j = 0; j < this.matrix[i].length; j++) {
                 let field = this.matrix[i][j];
-                if (field.id === id) {
+                if (field.id === fieldId) {
                     return field;
                 }
             }
         }
 
-        throw `Field with specified id: ${id} does not exists`;
+        throw `Field with specified id: ${fieldId} does not exists`;
     }
 
     _createMatrix() {
@@ -232,6 +300,16 @@ class Board {
         }
     }
 
+    _shfuffleArray(array) {
+        for (let i = array.length-1; i > 0; i--) {
+            const j = Math.floor(Math.random() * i)
+            const temp = array[i]
+            array[i] = array[j]
+            array[j] = temp
+        }
+        return array;
+    }
+
     _fillMatrix() {
         let fields = new Array(this.totalCount);
         for (let i = 0; i < fields.length; i++) {
@@ -239,7 +317,8 @@ class Board {
             let mined = (i >= this.emptyCount);
             fields[i] = new Field(fieldId, mined);
         }
-        fields = fields.sort(() => Math.random() - 0.5);
+
+        fields = this._shfuffleArray(fields);
 
         let fieldIndex = 0;
         for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
@@ -271,6 +350,8 @@ class Field {
         this._minedNeighborsNumber = 0;
         this._marked = false;
         this._checked = false;
+        this._disabled = false;
+        this._revealed = false;
     }
 
     set rowIndex(rowIndex) {
@@ -301,6 +382,14 @@ class Field {
         return (this._minedNeighborsNumber || 0) > 0;
     }
 
+    get disabled() {
+        return this._disabled;
+    }
+
+    disable() {
+        this._disabled = true;
+    }
+
     set minedNeighborsNumber(value) {
         if (this.mined) {
             throw 'Cannot set the mined neighbors number on mined field.';
@@ -318,6 +407,14 @@ class Field {
     }
 
     mark() {
+        if (this._disabled) {
+            throw `Cannot mark disabled field: '${this.id}'`;
+        }
+
+        if (this._revealed) {
+            throw `Cannot mark revealed field: '${this.id}'`;
+        }
+
         if (this._checked) {
             throw `Cannot mark checked field: '${this.id}'`;
         }
@@ -330,6 +427,14 @@ class Field {
     }
 
     unmark() {
+        if (this._disabled) {
+            throw `Cannot unmark disabled field: '${this.id}'`;
+        }
+
+        if (this._revealed) {
+            throw `Cannot unmark revealed field: '${this.id}'`;
+        }
+
         if (this._checked) {
             throw `Cannot unmark checked field: '${this.id}'`;
         }
@@ -346,6 +451,14 @@ class Field {
     }
 
     check() {
+        if (this._disabled) {
+            throw `Cannot check disabled field: '${this.id}'`;
+        }
+
+        if (this._revealed) {
+            throw `Cannot check revealed field: '${this.id}'`;
+        }
+
         if (this._checked) {
             throw `The field with: '${this.id}' is already checked`;
         }
@@ -355,5 +468,14 @@ class Field {
         }
 
         this._checked = true;
+    }
+
+    get revealed() {
+        return this._revealed;
+    }
+
+    reveal() {
+        this._disabled = true;
+        this._revealed = true;
     }
 }

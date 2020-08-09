@@ -10,16 +10,24 @@ td {
     table-layout: fixed;
     border-collapse: collapse;
     border: 1px solid black;
+    margin: auto;
 }
 
 .board tr td {
-    width: 30px;
-    height: 30px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     background-color: lightgray;
+    font-weight: bolder;
+    font-size: small;
 }
 
 .board tr td.checked {
+    cursor: initial;
+    background-color: initial;
+}
+
+.board tr td.revealed.mined {
     cursor: initial;
     background-color: initial;
 }
