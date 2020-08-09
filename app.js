@@ -65,18 +65,32 @@ class BoardRenderer {
 
     _cellClick(event) {
         const fieldId = event.target.id;
-        switch (event.button) {
-            case 0:
-                this.board.checkField(fieldId);
-                break;
-            case 2:
-                this.board.markField(fieldId);
-                break;
-            default:
-                break;
+
+        try {
+            switch (event.button) {
+                case 0:
+                    this.board.checkField(fieldId);
+                    break;
+                case 2:
+                    this.board.markField(fieldId);
+                    break;
+                default:
+                    break;
+            }
+        }
+        catch(e) {
+            console.error(e);
+            this._checkError(e);
         }
 
         this.refreshBoard();
+    }
+
+    _checkError(error) {
+        if (error instanceof CheckedMinedFieldError) {
+            alert(error.message);
+            //this.refreshBoard();
+        }
     }
 
     _clearBoard() {
@@ -93,13 +107,16 @@ class BoardRenderer {
     }
 
     _getCellContent(field) {
+        const charMine = '&#9899;'
+        const charFlag = '&#9873;'
+
         const showInnerHtml = field.revealed || field.marked || (field.checked && (field.hasMinedNeighbors || field.mined));
         if (!showInnerHtml) {
             return '';
         }
 
         if (field.marked && !field.revealed) {
-            return '&para;';
+            return charFlag;
         }
         
         if (field.hasMinedNeighbors) {
@@ -107,7 +124,7 @@ class BoardRenderer {
         }
         
         if (field.mined) {
-            return '&bull;';
+            return charMine;
         }        
 
         return '';
@@ -185,9 +202,7 @@ class Board {
 
         if (field.mined) {
             this._revealAllMines();
-            // TODO: 
-            // GAME OVER
-            return;
+            throw new CheckedMinedFieldError(fieldId);
         }
 
         if (field.minedNeighborsNumber === 0) {
@@ -477,5 +492,12 @@ class Field {
     reveal() {
         this._disabled = true;
         this._revealed = true;
+    }
+}
+
+class CheckedMinedFieldError extends Error {
+    constructor(fieldId) {
+        super(`You checked mined field: ${fieldId}. You lost!!!`);
+        this.fieldId = fieldId;
     }
 }
