@@ -1,18 +1,19 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    const rows = 10;
-    const cols = 10;
-    const minesPercent = 20;
-
-    const createNew = () => {
-        let board = new Board(rows, cols, minesPercent);
-        const renderer = new BoardRenderer(board);
-        renderer.refreshBoard();
-    };
-
     createNew();
     const btnReset = document.getElementById('btnReset');
     btnReset.addEventListener('click', (e) => createNew(), true);
 });
+
+const createNew = () => {
+    const rows = parseInt(document.getElementById("numRows").value) || 10;
+    const cols = parseInt(document.getElementById("numCols").value) || 10;
+    const minesPercent = 20;
+
+    console.log({ rows, cols, minesPercent });
+    let board = new Board(rows, cols, minesPercent);
+    let renderer = new BoardRenderer(board);
+    renderer.refreshBoard();
+};
 
 // const ClassNames = {
 //     MINE: 'im im-sun',
@@ -107,7 +108,7 @@ class BoardRenderer {
     }
 
     _getCellContent(field) {
-        const charMine = '&#9899;'
+        const charMine = '&#9728;'
         const charFlag = '&#9873;'
 
         const showInnerHtml = field.revealed || field.marked || (field.checked && (field.hasMinedNeighbors || field.mined));
@@ -263,6 +264,11 @@ class Board {
         for (let rowIndex = field.rowIndex == 0 ? 0 : field.rowIndex - 1; rowIndex <= field.rowIndex + 1 && rowIndex < this.rows; rowIndex++) {
             for (let colIndex = field.colIndex == 0 ? 0 : field.colIndex - 1; colIndex <= field.colIndex + 1 && colIndex < this.cols; colIndex++) {
                 const currentField = this.matrix[rowIndex][colIndex];
+                if (!currentField) {
+                    console.log(field);
+                    console.log(this.matrix);
+                    console.log(rowIndex, colIndex);
+                }
                 if (currentField.id !== field.id) {
                     neighborsFields.push(currentField);
                 }
@@ -309,10 +315,12 @@ class Board {
     }
 
     _createMatrix() {
+        console.log(this.rows, this.cols);
         this.matrix = new Array(this.rows);
         for (let i = 0; i < this.matrix.length; i++) {
             this.matrix[i] = new Array(this.cols);
         }
+        console.log(this.matrix);
     }
 
     _shfuffleArray(array) {

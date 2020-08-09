@@ -19,7 +19,8 @@ td {
     cursor: pointer;
     background-color: lightgray;
     font-weight: bolder;
-    font-size: small;
+    font-size: smaller;
+    vertical-align: middle;
 }
 
 .board tr td.checked {
