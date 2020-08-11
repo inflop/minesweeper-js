@@ -28,7 +28,7 @@ td {
     background-color: initial;
 }
 
-.board tr td.revealed.mined {
+.board tr td.revealed {
     cursor: initial;
     background-color: initial;
 }

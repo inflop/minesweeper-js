@@ -7,10 +7,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
 const createNew = () => {
     const rows = parseInt(document.getElementById("numRows").value) || 10;
     const cols = parseInt(document.getElementById("numCols").value) || 10;
-    const minesPercent = 20;
+    const minesPercentage = 15;
 
-    console.log({ rows, cols, minesPercent });
-    let board = new Board(rows, cols, minesPercent);
+    console.log({ rows, cols, minesPercentage });
+    let board = new Board(rows, cols, minesPercentage);
     let renderer = new BoardRenderer(board);
     renderer.refreshBoard();
 };
@@ -151,10 +151,10 @@ class BoardRenderer {
 
         if (field.checked) {
             cell.classList.add('checked');
-        }
 
-        if (field.mined) {
-            cell.classList.add('mined');
+            if (field.mined) {
+                cell.classList.add('mined');
+            }
         }
 
         if (field.revealed) {
@@ -170,25 +170,25 @@ class BoardRenderer {
 }
 
 class Board {
-    constructor(rows, cols, minesPercent) {
+    constructor(rows, cols, minesPercentage) {
         if ((rows || 0) === 0) {
-            throw 'Rows count must be greater than zero';
+            throw 'The number of rows must be greater than zero';
         }
 
         if ((cols || 0) === 0) {
-            throw 'Columns count must be greater than zero';
+            throw 'The number of columns must be greater than zero';
         }
 
-        if ((minesPercent || 0) === 0) {
-            throw 'Mines percent count must be greater than zero';
+        if ((minesPercentage || 0) === 0) {
+            throw 'The percentage of mines must be greater than zero';
         }
 
         this.rows = rows;
         this.cols = cols;
-        this.minesPercent = minesPercent;
+        this.minesPercentage = minesPercentage;
 
         this.totalCount = this.rows * this.cols;
-        this.minesCount = Math.round(this.totalCount * (this.minesPercent / 100));
+        this.minesCount = Math.round(this.totalCount * (this.minesPercentage / 100));
         this.emptyCount = this.totalCount - this.minesCount;
 
         this._createMatrix();
@@ -498,6 +498,9 @@ class Field {
     }
 
     reveal() {
+        if (!this.mined) {
+            throw `Only mined fields can be revealed`;
+        }
         this._disabled = true;
         this._revealed = true;
     }
