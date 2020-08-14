@@ -9,17 +9,10 @@ const createNew = () => {
     const cols = parseInt(document.getElementById("numCols").value) || 10;
     const minesPercentage = 15;
 
-    console.log({ rows, cols, minesPercentage });
     let board = new Board(rows, cols, minesPercentage);
     let renderer = new BoardRenderer(board);
     renderer.refreshBoard();
 };
-
-// const ClassNames = {
-//     MINE: 'im im-sun',
-//     MARK: 'im im-flag',
-//     INVALID_MARK: 
-// }
 
 class Game {
     constructor(board, boardContainer) {
@@ -28,7 +21,7 @@ class Game {
     }
 
     createNew() {
-        
+
     }
 }
 
@@ -40,11 +33,22 @@ class BoardRenderer {
 
         this.board = board;
         this._createBoard();
+
+        this.colors = {
+            1: '#403f3f',
+            2: '#d11141',
+            3: '#00aedb',
+            4: '#f37735',
+            5: '#ffc425',
+            6: '#00b159',
+            7: '#9ea19a',
+            8: '#ff4682',
+        };
     }
 
     _createBoard() {
         const tableId = 'board';
-        this.container = document.getElementById('boardContainer');
+        this.container = document.querySelector('.container');
 
         this.table = document.getElementById(tableId) || document.createElement('table');
         this.table.setAttribute('id', tableId);
@@ -55,11 +59,11 @@ class BoardRenderer {
 
     _renderBoard() {
         this._clearBoard();
-        for (let rowIndex = 0; rowIndex < this.board.matrix.length; rowIndex++) {
-            const row = this._createRow(rowIndex);
-            for (let colIndex = 0; colIndex < this.board.matrix[rowIndex].length; colIndex++) {
-                let field = this.board.matrix[rowIndex][colIndex];
-                const cell = this._createCell(colIndex, field, row);
+        for (let x = 0; x < this.board.matrix.length; x++) {
+            const row = this._createRow(x);
+            for (let y = 0; y < this.board.matrix[x].length; y++) {
+                let field = this.board.matrix[x][y];
+                const tableCell = this._createTableCell(y, field, row);
             }
         }
     }
@@ -70,21 +74,21 @@ class BoardRenderer {
         try {
             switch (event.button) {
                 case 0:
-                    this.board.checkField(fieldId);
+                    this.board.check(fieldId);
                     break;
                 case 2:
-                    this.board.markField(fieldId);
+                    this.board.toggle(fieldId);
                     break;
                 default:
                     break;
             }
-        }
-        catch(e) {
+        } catch (e) {
             console.error(e);
             this._checkError(e);
         }
 
         this.refreshBoard();
+        //this._setCellFontColor(fieldId);
     }
 
     _checkError(error) {
@@ -111,30 +115,30 @@ class BoardRenderer {
         const charMine = '&#9728;'
         const charFlag = '&#9873;'
 
-        const showInnerHtml = field.revealed || field.marked || (field.checked && (field.hasMinedNeighbors || field.mined));
+        const showInnerHtml = field.revealed || field.flagged || (field.checked && (field.hasMinedNeighbors || field.mined));
         if (!showInnerHtml) {
             return '';
         }
 
-        if (field.marked && !field.revealed) {
+        if (field.flagged && !field.revealed) {
             return charFlag;
         }
-        
+
         if (field.hasMinedNeighbors) {
             return field.minedNeighborsNumber;
         }
-        
+
         if (field.mined) {
             return charMine;
-        }        
+        }
 
         return '';
     }
 
-    _createCell(index, field, row) {
+    _createTableCell(index, field, row) {
+
         const cell = row.insertCell(index);
         cell.setAttribute("id", field.id);
-        // cell.setAttribute("title", JSON.stringify(field));
 
         cell.oncontextmenu = (e) => {
             e.preventDefault();
@@ -144,7 +148,7 @@ class BoardRenderer {
 
         cell.innerHTML = this._getCellContent(field);
 
-        const isMouseUpEventListener = !field.checked && !field.disabled;
+        const isMouseUpEventListener = !field.checked && !field.disabled && !field.revealed;
         if (isMouseUpEventListener) {
             cell.addEventListener('mouseup', (e) => this._cellClick(e), true);
         }
@@ -155,14 +159,14 @@ class BoardRenderer {
             if (field.mined) {
                 cell.classList.add('mined');
             }
+
+            if (field.hasMinedNeighbors && !field.mined) {
+                cell.style.color = this.colors[field.minedNeighborsNumber];
+            }
         }
 
         if (field.revealed) {
             cell.classList.add('revealed');
-        }
-
-        if (field.marked) {
-            cell.classList.add('marked');
         }
 
         return cell;
@@ -196,13 +200,13 @@ class Board {
         this._setNeighborsMinesNumber();
     }
 
-    checkField(fieldId) {
+    check(fieldId) {
         let field = this._getFieldById(fieldId);
 
         field.check();
 
         if (field.mined) {
-            this._revealAllMines();
+            this._disableAndReveal();
             throw new CheckedMinedFieldError(fieldId);
         }
 
@@ -212,32 +216,26 @@ class Board {
     }
 
     /**
+     * Set mine flag on the field with specified ID.
+     * @param {string} fieldId 
+     */
+    toggle(fieldId) {
+        let field = this._getFieldById(fieldId);
+        field.toggleFlag();
+    }
+
+    /**
      * Reveals and displays all mines.
      */
-    _revealAllMines() {
-        for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
-            for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
-                let field = this.matrix[rowIndex][colIndex];
+    _disableAndReveal() {
+        for (let x = 0; x < this.matrix.length; x++) {
+            for (let y = 0; y < this.matrix[x].length; y++) {
+                let field = this.matrix[x][y];
                 field.disable();
                 if (field.mined) {
                     field.reveal();
                 }
             }
-        }
-    }
-
-    /**
-     * Set mine flag on the field with specified ID.
-     * @param {string} fieldId 
-     */
-    markField(fieldId) {
-        let field = this._getFieldById(fieldId);
-
-        if (field.marked) {
-            field.unmark();
-        }
-        else {
-            field.mark();
         }
     }
 
@@ -249,8 +247,8 @@ class Board {
         let neighborsFields = this._getNeighborsFields(field);
         for (let i = 0; i < neighborsFields.length; i++) {
             const currentField = neighborsFields[i];
-            if (!currentField.checked && !currentField.mined && !currentField.marked) {
-                this.checkField(currentField.id);
+            if (!currentField.checked && !currentField.mined && !currentField.flagged) {
+                this.check(currentField.id);
             }
         }
     }
@@ -261,14 +259,9 @@ class Board {
      */
     _getNeighborsFields(field) {
         let neighborsFields = [];
-        for (let rowIndex = field.rowIndex == 0 ? 0 : field.rowIndex - 1; rowIndex <= field.rowIndex + 1 && rowIndex < this.rows; rowIndex++) {
-            for (let colIndex = field.colIndex == 0 ? 0 : field.colIndex - 1; colIndex <= field.colIndex + 1 && colIndex < this.cols; colIndex++) {
-                const currentField = this.matrix[rowIndex][colIndex];
-                if (!currentField) {
-                    console.log(field);
-                    console.log(this.matrix);
-                    console.log(rowIndex, colIndex);
-                }
+        for (let x = field.position.x == 0 ? 0 : field.position.x - 1; x <= field.position.x + 1 && x < this.rows; x++) {
+            for (let y = field.position.y == 0 ? 0 : field.position.y - 1; y <= field.position.y + 1 && y < this.cols; y++) {
+                const currentField = this.matrix[x][y];
                 if (currentField.id !== field.id) {
                     neighborsFields.push(currentField);
                 }
@@ -281,9 +274,9 @@ class Board {
      * 
      */
     _setNeighborsMinesNumber() {
-        for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
-            for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
-                let field = this.matrix[rowIndex][colIndex];
+        for (let x = 0; x < this.matrix.length; x++) {
+            for (let y = 0; y < this.matrix[x].length; y++) {
+                let field = this.matrix[x][y];
                 let neighborsFields = this._getNeighborsFields(field);
                 let minedNeighborsNumber = neighborsFields.filter(f => f.mined).length || 0;
                 if (!field.mined) {
@@ -302,9 +295,9 @@ class Board {
             throw 'Field ID is required';
         }
 
-        for (let i = 0; i < this.matrix.length; i++) {
-            for (let j = 0; j < this.matrix[i].length; j++) {
-                let field = this.matrix[i][j];
+        for (let x = 0; x < this.matrix.length; x++) {
+            for (let y = 0; y < this.matrix[x].length; y++) {
+                let field = this.matrix[x][y];
                 if (field.id === fieldId) {
                     return field;
                 }
@@ -315,16 +308,14 @@ class Board {
     }
 
     _createMatrix() {
-        console.log(this.rows, this.cols);
         this.matrix = new Array(this.rows);
         for (let i = 0; i < this.matrix.length; i++) {
             this.matrix[i] = new Array(this.cols);
         }
-        console.log(this.matrix);
     }
 
     _shfuffleArray(array) {
-        for (let i = array.length-1; i > 0; i--) {
+        for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * i)
             const temp = array[i]
             array[i] = array[j]
@@ -344,12 +335,11 @@ class Board {
         fields = this._shfuffleArray(fields);
 
         let fieldIndex = 0;
-        for (let rowIndex = 0; rowIndex < this.matrix.length; rowIndex++) {
-            for (let colIndex = 0; colIndex < this.matrix[rowIndex].length; colIndex++) {
+        for (let x = 0; x < this.matrix.length; x++) {
+            for (let y = 0; y < this.matrix[x].length; y++) {
                 let field = fields[fieldIndex++];
-                field.rowIndex = rowIndex;
-                field.colIndex = colIndex;
-                this.matrix[rowIndex][colIndex] = field;
+                field.position = new Position(x, y);
+                this.matrix[x][y] = field;
             }
         }
     }
@@ -368,37 +358,20 @@ class Field {
     }
 
     initializeDefaults() {
-        this._rowIndex = 0;
-        this._colIndex = 0;
         this._minedNeighborsNumber = 0;
-        this._marked = false;
+        this._flagged = false;
         this._checked = false;
         this._disabled = false;
         this._revealed = false;
+        this._position = null;
     }
 
-    set rowIndex(rowIndex) {
-        if (isNaN(rowIndex)) {
-            throw 'Row index must be a number';
-        }
-
-        this._rowIndex = rowIndex;
+    set position(position) {
+        this._position = position;
     }
 
-    get rowIndex() {
-        return this._rowIndex;
-    }
-
-    set colIndex(colIndex) {
-        if (isNaN(colIndex)) {
-            throw 'Column index must be a number';
-        }
-
-        this._colIndex = colIndex;
-    }
-
-    get colIndex() {
-        return this._colIndex;
+    get position() {
+        return this._position;
     }
 
     get hasMinedNeighbors() {
@@ -425,48 +398,40 @@ class Field {
         return this._minedNeighborsNumber;
     }
 
-    get marked() {
-        return this._marked;
+    toggleFlag() {
+        if (!this._flagged) {
+
+            if (this._disabled) {
+                throw `Cannot flag disabled field: '${this.id}'`;
+            }
+
+            if (this._revealed) {
+                throw `Cannot flag revealed field: '${this.id}'`;
+            }
+
+            if (this._checked) {
+                throw `Cannot flag checked field: '${this.id}'`;
+            }
+        }
+        else {
+            if (this._disabled) {
+                throw `Cannot unflag disabled field: '${this.id}'`;
+            }
+    
+            if (this._revealed) {
+                throw `Cannot unflag revealed field: '${this.id}'`;
+            }
+    
+            if (this._checked) {
+                throw `Cannot unflag checked field: '${this.id}'`;
+            }
+        }
+
+        this._flagged = !this._flagged;
     }
 
-    mark() {
-        if (this._disabled) {
-            throw `Cannot mark disabled field: '${this.id}'`;
-        }
-
-        if (this._revealed) {
-            throw `Cannot mark revealed field: '${this.id}'`;
-        }
-
-        if (this._checked) {
-            throw `Cannot mark checked field: '${this.id}'`;
-        }
-
-        if (this._marked) {
-            throw `The field: '${this.id}' is already marked.`;
-        }
-
-        this._marked = true;
-    }
-
-    unmark() {
-        if (this._disabled) {
-            throw `Cannot unmark disabled field: '${this.id}'`;
-        }
-
-        if (this._revealed) {
-            throw `Cannot unmark revealed field: '${this.id}'`;
-        }
-
-        if (this._checked) {
-            throw `Cannot unmark checked field: '${this.id}'`;
-        }
-
-        if (!this._marked) {
-            throw `The field with id: '${this.id}' is already unmarked`;
-        }
-
-        this._marked = false;
+    get flagged() {
+        return this._flagged;
     }
 
     get checked() {
@@ -486,8 +451,8 @@ class Field {
             throw `The field with: '${this.id}' is already checked`;
         }
 
-        if (this._marked) {
-            throw `Cannot check marked field: '${this.id}'`;
+        if (this._flagged) {
+            throw `Cannot check flagged field: '${this.id}'`;
         }
 
         this._checked = true;
@@ -501,8 +466,24 @@ class Field {
         if (!this.mined) {
             throw `Only mined fields can be revealed`;
         }
-        this._disabled = true;
+
+        this.disable();
         this._revealed = true;
+    }
+}
+
+class Position {
+    constructor(x, y) {
+        if (isNaN(x)) {
+            throw 'x value must be a number';
+        }
+
+        if (isNaN(y)) {
+            throw 'y value must be a number';
+        }
+
+        this.x = x;
+        this.y = y;
     }
 }
 

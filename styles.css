@@ -2,6 +2,14 @@ html {
     text-align: center;
 }
 
+.container {
+    margin: 10px;
+}
+
+.parameters {
+    margin: 10px;
+}
+
 table,
 th,
 td {
