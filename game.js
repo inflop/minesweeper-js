@@ -1,13 +1,39 @@
+"use strict";
+
+const GameResult = {
+  NONE: -1,
+  LOSE: 0,
+  WIN: 1
+};
+
 class Game {
-  constructor(rows, cols, minesPercentage) {
-    this.rows = rows;
-    this.cols = cols;
-    this.minesPercentage = minesPercentage;
+  constructor(config) {
+    this._config = config;
+    this.result = GameResult.NONE;
   }
 
   create() {
-    this.board = new Board(this.rows, this.cols, this.minesPercentage);
+
+    this.board = new Board(this._config);
     this.renderer = new BoardRenderer(this.board);
     this.renderer.refreshBoard();
+
+    this.board.addEventListener('onComplete', this._onComplete, false);
   }
+
+  _onComplete(e) {
+    if (!e) return;
+
+    console.log(e);
+    const result = e.detail.result;
+    const msg = `You ${result ? 'won' : 'lost'}`;
+    alert(msg);
+    //this.create();
+  }
+
+  get config() {
+    return this._config;
+  }
+
+  onComplete
 }

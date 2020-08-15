@@ -1,3 +1,5 @@
+"use strict";
+
 class BoardRenderer {
   constructor(board) {
     if (!board) {
@@ -46,10 +48,10 @@ class BoardRenderer {
 
     try {
       switch (event.button) {
-        case 0:
+        case 0: // left mouse button
           this.board.check(fieldId);
           break;
-        case 2:
+        case 2: // right mouse button
           this.board.toggle(fieldId);
           break;
         default:
@@ -61,7 +63,6 @@ class BoardRenderer {
     }
 
     this.refreshBoard();
-    //this._setCellFontColor(fieldId);
   }
 
   _checkError(error) {

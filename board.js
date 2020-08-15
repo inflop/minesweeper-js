@@ -1,43 +1,80 @@
+"use strict";
+
 class Board {
-  constructor(rows, cols, minesPercentage) {
-    if ((rows || 0) === 0) {
-      throw 'The number of rows must be greater than zero';
+  constructor(config) {
+    if (!config) {
+      throw 'The configuration is not set.';
     }
 
-    if ((cols || 0) === 0) {
-      throw 'The number of columns must be greater than zero';
-    }
-
-    if ((minesPercentage || 0) === 0) {
-      throw 'The percentage of mines must be greater than zero';
-    }
-
-    this.rows = rows;
-    this.cols = cols;
-    this.minesPercentage = minesPercentage;
-
-    this.totalCount = this.rows * this.cols;
-    this.minesCount = Math.round(this.totalCount * (this.minesPercentage / 100));
-    this.emptyCount = this.totalCount - this.minesCount;
+    this.config = config;
 
     this._createMatrix();
     this._fillMatrix();
     this._setNeighborsMinesNumber();
+
+    this._completed = false;
+    this.eventListeners = [];
+  }
+
+  addEventListener(type, eventHandler) {
+    eventHandler();
+    var listener = new Object();
+    listener.type = type;
+    listener.eventHandler = eventHandler;
+    this.eventListeners.push(listener);
+  }
+
+  dispatchEvent(event) {
+    for (var i = 0; i < this.eventListeners.length; i++) {
+      if (event.type == this.eventListeners[i].type)
+        this.eventListeners[i].eventHandler(event);
+    }
   }
 
   check(fieldId) {
     let field = this._getFieldById(fieldId);
 
+    if (field.flagged) {
+      return;
+    }
+
     field.check();
 
     if (field.mined) {
-      this._disableAndReveal();
-      throw new CheckedMinedFieldError(fieldId);
+      this._complete(false);
     }
 
-    if (field.minedNeighborsNumber === 0) {
+    if (field.minedNeighborsNumber === 0 && !field.mined) {
       this._checkNeighbors(field);
     }
+
+    if(!this._completed && this._areAllChecked()) {
+      this._complete(true);
+    }
+  }
+
+  _complete(result) {
+    this._completed = true;
+    this._disableAndReveal();
+    this.dispatchEvent(new CustomEvent("onComplete", { detail: { result: result }}));
+  }
+
+  get completed() {
+    return this._completed;
+  }
+
+  _areAllChecked() {
+    let count = 0;
+    for (let x = 0; x < this.matrix.length; x++) {
+      for (let y = 0; y < this.matrix[x].length; y++) {
+        let field = this.matrix[x][y];
+        if ((!field.mined && !field.checked)
+          || (field.mined && !field.flagged)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**
@@ -84,8 +121,8 @@ class Board {
    */
   _getNeighborsFields(field) {
     let neighborsFields = [];
-    for (let x = field.position.x == 0 ? 0 : field.position.x - 1; x <= field.position.x + 1 && x < this.rows; x++) {
-      for (let y = field.position.y == 0 ? 0 : field.position.y - 1; y <= field.position.y + 1 && y < this.cols; y++) {
+    for (let x = field.position.x == 0 ? 0 : field.position.x - 1; x <= field.position.x + 1 && x < this.config.rows; x++) {
+      for (let y = field.position.y == 0 ? 0 : field.position.y - 1; y <= field.position.y + 1 && y < this.config.cols; y++) {
         const currentField = this.matrix[x][y];
         if (currentField.id !== field.id) {
           neighborsFields.push(currentField);
@@ -133,13 +170,13 @@ class Board {
   }
 
   _createMatrix() {
-    this.matrix = new Array(this.rows);
+    this.matrix = new Array(this.config.rows);
     for (let i = 0; i < this.matrix.length; i++) {
-      this.matrix[i] = new Array(this.cols);
+      this.matrix[i] = new Array(this.config.cols);
     }
   }
 
-  _shfuffleArray(array) {
+  _shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * i)
       const temp = array[i]
@@ -150,14 +187,14 @@ class Board {
   }
 
   _fillMatrix() {
-    let fields = new Array(this.totalCount);
+    let fields = new Array(this.config.totalCount);
     for (let i = 0; i < fields.length; i++) {
       let fieldId = `f_${i}`;
-      let mined = (i >= this.emptyCount);
+      let mined = (i >= this.config.emptyCount);
       fields[i] = new Field(fieldId, mined);
     }
 
-    fields = this._shfuffleArray(fields);
+    fields = this._shuffleArray(fields);
 
     let fieldIndex = 0;
     for (let x = 0; x < this.matrix.length; x++) {

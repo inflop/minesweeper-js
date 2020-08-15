@@ -1,3 +1,5 @@
+"use strict";
+
 class Field {
   constructor(id, mined) {
     if (!id) {

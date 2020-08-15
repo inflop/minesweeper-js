@@ -1,3 +1,5 @@
+"use strict";
+
 document.addEventListener('DOMContentLoaded', (event) => {
   createNew();
   const btnReset = document.getElementById('btnReset');
@@ -9,7 +11,8 @@ const createNew = () => {
   const cols = parseInt(document.getElementById("numCols").value) || 10;
   const minesPercentage = 15;
 
-  let game = new Game(rows, cols, minesPercentage);
+  const config = new Config(rows, cols, minesPercentage);
+  let game = new Game(config);
   game.create();
 };
 

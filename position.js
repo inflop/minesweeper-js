@@ -1,3 +1,5 @@
+"use strict";
+
 class Position {
   constructor(x, y) {
     if (isNaN(x)) {
