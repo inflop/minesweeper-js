@@ -15,10 +15,3 @@ const createNew = () => {
   let game = new Game(config);
   game.create();
 };
-
-class CheckedMinedFieldError extends Error {
-  constructor(fieldId) {
-    super(`You checked mined field: ${fieldId}. You lost!!!`);
-    this.fieldId = fieldId;
-  }
-}
