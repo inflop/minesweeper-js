@@ -37,39 +37,31 @@ class BoardRenderer {
     for (let x = 0; x < this.board.matrix.length; x++) {
       const row = this._createRow(x);
       for (let y = 0; y < this.board.matrix[x].length; y++) {
-        let field = this.board.matrix[x][y];
-        const tableCell = this._createTableCell(y, field, row);
+        let cell = this.board.matrix[x][y];
+        const tableCell = this._createTableCell(y, cell, row);
       }
     }
   }
 
   _cellClick(event) {
-    const fieldId = event.target.id;
+    const cellId = event.target.id;
 
     try {
       switch (event.button) {
         case 0: // left mouse button
-          this.board.check(fieldId);
+          this.board.check(cellId);
           break;
         case 2: // right mouse button
-          this.board.toggle(fieldId);
+          this.board.toggle(cellId);
           break;
         default:
           break;
       }
     } catch (e) {
       console.error(e);
-      this._checkError(e);
     }
 
     this.refreshBoard();
-  }
-
-  _checkError(error) {
-    if (error instanceof CheckedMinedFieldError) {
-      alert(error.message);
-      //this.refreshBoard();
-    }
   }
 
   _clearBoard() {
@@ -85,64 +77,64 @@ class BoardRenderer {
     return row;
   }
 
-  _getCellContent(field) {
+  _getCellContent(cell) {
     const charMine = '&#9728;'
     const charFlag = '&#9873;'
 
-    const showInnerHtml = field.revealed || field.flagged || (field.checked && (field.hasMinedNeighbors || field.mined));
+    const showInnerHtml = cell.revealed || cell.flagged || (cell.checked && (cell.hasMinedNeighbors || cell.mined));
     if (!showInnerHtml) {
       return '';
     }
 
-    if (field.flagged && !field.revealed) {
+    if (cell.flagged && !cell.revealed) {
       return charFlag;
     }
 
-    if (field.hasMinedNeighbors) {
-      return field.minedNeighborsNumber;
+    if (cell.hasMinedNeighbors) {
+      return cell.minedNeighborsNumber;
     }
 
-    if (field.mined) {
+    if (cell.mined) {
       return charMine;
     }
 
     return '';
   }
 
-  _createTableCell(index, field, row) {
+  _createTableCell(index, cell, row) {
 
-    const cell = row.insertCell(index);
-    cell.setAttribute("id", field.id);
+    const tableCell = row.insertCell(index);
+    tableCell.setAttribute("id", cell.id);
 
-    cell.oncontextmenu = (e) => {
+    tableCell.oncontextmenu = (e) => {
       e.preventDefault();
       e.stopPropagation();
       return false;
     };
 
-    cell.innerHTML = this._getCellContent(field);
+    tableCell.innerHTML = this._getCellContent(cell);
 
-    const isMouseUpEventListener = !field.checked && !field.disabled && !field.revealed;
+    const isMouseUpEventListener = !cell.checked && !cell.disabled && !cell.revealed;
     if (isMouseUpEventListener) {
-      cell.addEventListener('mouseup', (e) => this._cellClick(e), true);
+      tableCell.addEventListener('mouseup', (e) => this._cellClick(e), true);
     }
 
-    if (field.checked) {
-      cell.classList.add('checked');
+    if (cell.checked) {
+      tableCell.classList.add('checked');
 
-      if (field.mined) {
-        cell.classList.add('mined');
+      if (cell.mined) {
+        tableCell.classList.add('mined');
       }
 
-      if (field.hasMinedNeighbors && !field.mined) {
-        cell.style.color = this.colors[field.minedNeighborsNumber];
+      if (cell.hasMinedNeighbors && !cell.mined) {
+        tableCell.style.color = this.colors[cell.minedNeighborsNumber];
       }
     }
 
-    if (field.revealed) {
-      cell.classList.add('revealed');
+    if (cell.revealed) {
+      tableCell.classList.add('revealed');
     }
 
-    return cell;
+    return tableCell;
   }
 }

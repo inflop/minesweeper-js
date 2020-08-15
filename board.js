@@ -31,21 +31,21 @@ class Board {
     }
   }
 
-  check(fieldId) {
-    let field = this._getFieldById(fieldId);
+  check(cellId) {
+    let cell = this._getCellById(cellId);
 
-    if (field.flagged) {
+    if (cell.flagged) {
       return;
     }
 
-    field.check();
+    cell.check();
 
-    if (field.mined) {
+    if (cell.mined) {
       this._complete(false);
     }
 
-    if (field.minedNeighborsNumber === 0 && !field.mined) {
-      this._checkNeighbors(field);
+    if (cell.minedNeighborsNumber === 0 && !cell.mined) {
+      this._checkNeighbors(cell);
     }
 
     if(!this._completed && this._areAllChecked()) {
@@ -54,12 +54,12 @@ class Board {
   }
 
   /**
-   * Set mine flag on the field with specified ID.
-   * @param {string} fieldId 
+   * Set mine flag on the cell with specified ID.
+   * @param {string} cellId 
    */
-  toggle(fieldId) {
-    let field = this._getFieldById(fieldId);
-    field.toggleFlag();
+  toggle(cellId) {
+    let cell = this._getCellById(cellId);
+    cell.toggleFlag();
 
     if(!this._completed && this._areAllChecked()) {
       this._complete(true);
@@ -79,9 +79,9 @@ class Board {
   _areAllChecked() {
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
-        let field = this.matrix[x][y];
-        if ((!field.mined && !field.checked)    // exists not checked empty cell
-          || (field.mined && !field.flagged)) { // exists not flagged cell with mine
+        let cell = this.matrix[x][y];
+        if ((!cell.mined && !cell.checked)    // exists not checked empty cell
+          || (cell.mined && !cell.flagged)) { // exists not flagged cell with mine
           return false;
         }
       }
@@ -95,10 +95,10 @@ class Board {
   _disableAndReveal() {
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
-        let field = this.matrix[x][y];
-        field.disable();
-        if (field.mined) {
-          field.reveal();
+        let cell = this.matrix[x][y];
+        cell.disable();
+        if (cell.mined) {
+          cell.reveal();
         }
       }
     }
@@ -106,33 +106,33 @@ class Board {
 
   /**
    * 
-   * @param {Field} field
+   * @param {Cell} cell
    */
-  _checkNeighbors(field) {
-    let neighborsFields = this._getNeighborsFields(field);
-    for (let i = 0; i < neighborsFields.length; i++) {
-      const currentField = neighborsFields[i];
-      if (!currentField.checked && !currentField.mined && !currentField.flagged) {
-        this.check(currentField.id);
+  _checkNeighbors(cell) {
+    let neighborsCells = this._getNeighborsCells(cell);
+    for (let i = 0; i < neighborsCells.length; i++) {
+      const currentCell = neighborsCells[i];
+      if (!currentCell.checked && !currentCell.mined && !currentCell.flagged) {
+        this.check(currentCell.id);
       }
     }
   }
 
   /**
    * 
-   * @param {Field} field
+   * @param {Cell} cell
    */
-  _getNeighborsFields(field) {
-    let neighborsFields = [];
-    for (let x = field.position.x == 0 ? 0 : field.position.x - 1; x <= field.position.x + 1 && x < this.config.rows; x++) {
-      for (let y = field.position.y == 0 ? 0 : field.position.y - 1; y <= field.position.y + 1 && y < this.config.cols; y++) {
-        const currentField = this.matrix[x][y];
-        if (currentField.id !== field.id) {
-          neighborsFields.push(currentField);
+  _getNeighborsCells(cell) {
+    let neighborsCells = [];
+    for (let x = cell.position.x == 0 ? 0 : cell.position.x - 1; x <= cell.position.x + 1 && x < this.config.rows; x++) {
+      for (let y = cell.position.y == 0 ? 0 : cell.position.y - 1; y <= cell.position.y + 1 && y < this.config.cols; y++) {
+        const currentCell = this.matrix[x][y];
+        if (currentCell.id !== cell.id) {
+          neighborsCells.push(currentCell);
         }
       }
     }
-    return neighborsFields;
+    return neighborsCells;
   }
 
   /**
@@ -141,11 +141,11 @@ class Board {
   _setNeighborsMinesNumber() {
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
-        let field = this.matrix[x][y];
-        let neighborsFields = this._getNeighborsFields(field);
-        let minedNeighborsNumber = neighborsFields.filter(f => f.mined).length || 0;
-        if (!field.mined) {
-          field.minedNeighborsNumber = minedNeighborsNumber;
+        let cell = this.matrix[x][y];
+        let neighborsCells = this._getNeighborsCells(cell);
+        let minedNeighborsNumber = neighborsCells.filter(f => f.mined).length || 0;
+        if (!cell.mined) {
+          cell.minedNeighborsNumber = minedNeighborsNumber;
         }
       }
     }
@@ -153,23 +153,23 @@ class Board {
 
   /**
    * 
-   * @param {string} fieldId
+   * @param {string} cellId
    */
-  _getFieldById(fieldId) {
-    if (!fieldId) {
-      throw 'Field ID is required';
+  _getCellById(cellId) {
+    if (!cellId) {
+      throw 'The cell ID is required';
     }
 
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
-        let field = this.matrix[x][y];
-        if (field.id === fieldId) {
-          return field;
+        let cell = this.matrix[x][y];
+        if (cell.id === cellId) {
+          return cell;
         }
       }
     }
 
-    throw `Field with specified id: ${fieldId} does not exists`;
+    throw `The cell with specified id: ${cellId} does not exists`;
   }
 
   _createMatrix() {
@@ -190,21 +190,21 @@ class Board {
   }
 
   _fillMatrix() {
-    let fields = new Array(this.config.totalCount);
-    for (let i = 0; i < fields.length; i++) {
-      let fieldId = `f_${i}`;
+    let cells = new Array(this.config.totalCount);
+    for (let i = 0; i < cells.length; i++) {
+      let cellId = `f_${i}`;
       let mined = (i >= this.config.emptyCount);
-      fields[i] = new Field(fieldId, mined);
+      cells[i] = new Cell(cellId, mined);
     }
 
-    fields = this._shuffleArray(fields);
+    cells = this._shuffleArray(cells);
 
-    let fieldIndex = 0;
+    let cellIndex = 0;
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
-        let field = fields[fieldIndex++];
-        field.position = new Position(x, y);
-        this.matrix[x][y] = field;
+        let cell = cells[cellIndex++];
+        cell.position = new Position(x, y);
+        this.matrix[x][y] = cell;
       }
     }
   }

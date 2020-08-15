@@ -1,9 +1,9 @@
 "use strict";
 
-class Field {
+class Cell {
   constructor(id, mined) {
     if (!id) {
-      throw 'Field ID is required';
+      throw "The cell's ID is required";
     }
 
     this.id = id;
@@ -43,7 +43,7 @@ class Field {
 
   set minedNeighborsNumber(value) {
     if (this.mined) {
-      throw 'Cannot set the mined neighbors number on mined field.';
+      throw 'Cannot set the mined neighbors number on mined cell.';
     }
 
     this._minedNeighborsNumber = value || 0;
@@ -57,27 +57,27 @@ class Field {
     if (!this._flagged) {
 
       if (this._disabled) {
-        throw `Cannot flag disabled field: '${this.id}'`;
+        throw `Cannot flag disabled cell: '${this.id}'`;
       }
 
       if (this._revealed) {
-        throw `Cannot flag revealed field: '${this.id}'`;
+        throw `Cannot flag revealed cell: '${this.id}'`;
       }
 
       if (this._checked) {
-        throw `Cannot flag checked field: '${this.id}'`;
+        throw `Cannot flag checked cell: '${this.id}'`;
       }
     } else {
       if (this._disabled) {
-        throw `Cannot unflag disabled field: '${this.id}'`;
+        throw `Cannot unflag disabled cell: '${this.id}'`;
       }
 
       if (this._revealed) {
-        throw `Cannot unflag revealed field: '${this.id}'`;
+        throw `Cannot unflag revealed cell: '${this.id}'`;
       }
 
       if (this._checked) {
-        throw `Cannot unflag checked field: '${this.id}'`;
+        throw `Cannot unflag checked cell: '${this.id}'`;
       }
     }
 
@@ -94,19 +94,19 @@ class Field {
 
   check() {
     if (this._disabled) {
-      throw `Cannot check disabled field: '${this.id}'`;
+      throw `Cannot check disabled cell: '${this.id}'`;
     }
 
     if (this._revealed) {
-      throw `Cannot check revealed field: '${this.id}'`;
+      throw `Cannot check revealed cell: '${this.id}'`;
     }
 
     if (this._checked) {
-      throw `The field with: '${this.id}' is already checked`;
+      throw `The cell with: '${this.id}' is already checked`;
     }
 
     if (this._flagged) {
-      throw `Cannot check flagged field: '${this.id}'`;
+      throw `Cannot check flagged cell: '${this.id}'`;
     }
 
     this._checked = true;
@@ -118,7 +118,7 @@ class Field {
 
   reveal() {
     if (!this.mined) {
-      throw `Only mined fields can be revealed`;
+      throw `Only mined cells can be revealed`;
     }
 
     this.disable();
