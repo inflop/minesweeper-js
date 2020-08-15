@@ -53,6 +53,19 @@ class Board {
     }
   }
 
+  /**
+   * Set mine flag on the field with specified ID.
+   * @param {string} fieldId 
+   */
+  toggle(fieldId) {
+    let field = this._getFieldById(fieldId);
+    field.toggleFlag();
+
+    if(!this._completed && this._areAllChecked()) {
+      this._complete(true);
+    }
+  }
+
   _complete(result) {
     this._completed = true;
     this._disableAndReveal();
@@ -64,26 +77,16 @@ class Board {
   }
 
   _areAllChecked() {
-    let count = 0;
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
         let field = this.matrix[x][y];
-        if ((!field.mined && !field.checked)
-          || (field.mined && !field.flagged)) {
+        if ((!field.mined && !field.checked)    // exists not checked empty cell
+          || (field.mined && !field.flagged)) { // exists not flagged cell with mine
           return false;
         }
       }
     }
     return true;
-  }
-
-  /**
-   * Set mine flag on the field with specified ID.
-   * @param {string} fieldId 
-   */
-  toggle(fieldId) {
-    let field = this._getFieldById(fieldId);
-    field.toggleFlag();
   }
 
   /**
