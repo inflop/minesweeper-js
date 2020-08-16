@@ -1,15 +1,8 @@
 "use strict";
 
-const GameResult = {
-  NONE: -1,
-  LOSE: 0,
-  WIN: 1
-};
-
 class Game {
   constructor(config) {
     this._config = config;
-    this.result = GameResult.NONE;
   }
 
   create() {
@@ -24,16 +17,13 @@ class Game {
   _onComplete(e) {
     if (!e) return;
 
-    console.log(e);
-    const result = e.detail.result;
-    const msg = `You ${result ? 'won' : 'lost'}`;
+    console.log(e.detail);
+    const state = e.detail.state;
+    const msg = `You ${state === BoardState.EXPLODED ? 'lost' : 'won'}`;
     alert(msg);
-    //this.create();
   }
 
   get config() {
     return this._config;
   }
-
-  onComplete
 }

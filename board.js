@@ -1,5 +1,11 @@
 "use strict";
 
+const BoardState = {
+  NONE: 0,
+  DEMINED: 1,
+  EXPLODED: 2
+};
+
 class Board {
   constructor(config) {
     if (!config) {
@@ -7,6 +13,7 @@ class Board {
     }
 
     this.config = config;
+    this._state = BoardState.NONE;
 
     this._createMatrix();
     this._fillMatrix();
@@ -14,6 +21,10 @@ class Board {
 
     this._completed = false;
     this.eventListeners = [];
+  }
+
+  get state() {
+    return this._state;
   }
 
   addEventListener(type, eventHandler) {
@@ -39,18 +50,8 @@ class Board {
     }
 
     cell.check();
-
-    if (cell.mined) {
-      this._complete(false);
-    }
-
-    if (cell.minedNeighborsNumber === 0 && !cell.mined) {
-      this._checkNeighbors(cell);
-    }
-
-    if(!this._completed && this._areAllChecked()) {
-      this._complete(true);
-    }
+    this._checkBoardState();
+    this._checkNeighbors(cell);
   }
 
   /**
@@ -60,33 +61,58 @@ class Board {
   toggle(cellId) {
     let cell = this._getCellById(cellId);
     cell.toggleFlag();
-
-    if(!this._completed && this._areAllChecked()) {
-      this._complete(true);
-    }
+    this._checkBoardState();
   }
 
-  _complete(result) {
+  _complete() {
     this._completed = true;
     this._disableAndReveal();
-    this.dispatchEvent(new CustomEvent("onComplete", { detail: { result: result }}));
+    this.dispatchEvent(new CustomEvent("onComplete", { detail: { state: this._state }}));
   }
 
   get completed() {
     return this._completed;
   }
 
-  _areAllChecked() {
+  _checkBoardState() {
+    if (this._completed) {
+      return;
+    }
+
+    let existsExplodedCell = false;
+    let existsNotFlaggedMinedCell = false;
+    let existsNotCheckedEmptyCell = false;
+
     for (let x = 0; x < this.matrix.length; x++) {
       for (let y = 0; y < this.matrix[x].length; y++) {
         let cell = this.matrix[x][y];
-        if ((!cell.mined && !cell.checked)    // exists not checked empty cell
-          || (cell.mined && !cell.flagged)) { // exists not flagged cell with mine
-          return false;
+
+        if (cell.exploded) {
+          existsExplodedCell = true;
+          break;
+        }
+
+        if (cell.mined && !cell.flagged) {
+          existsNotFlaggedMinedCell = true;
+        }
+
+        if (!cell.mined && !cell.checked) {
+          existsNotCheckedEmptyCell = true;
         }
       }
     }
-    return true;
+
+    if (existsExplodedCell) {
+      this._state = BoardState.EXPLODED;
+    }
+
+    if (!existsNotFlaggedMinedCell && !existsNotCheckedEmptyCell) {
+      this._state = BoardState.DEMINED;
+    }
+
+    if (this._state !== BoardState.NONE) {
+      this._complete();
+    }
   }
 
   /**
@@ -109,7 +135,12 @@ class Board {
    * @param {Cell} cell
    */
   _checkNeighbors(cell) {
+    if (cell.hasMinedNeighbors || cell.mined) {
+      return;
+    }
+
     let neighborsCells = this._getNeighborsCells(cell);
+
     for (let i = 0; i < neighborsCells.length; i++) {
       const currentCell = neighborsCells[i];
       if (!currentCell.checked && !currentCell.mined && !currentCell.flagged) {

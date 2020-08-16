@@ -23,7 +23,7 @@ class BoardRenderer {
 
   _createBoard() {
     const tableId = 'board';
-    this.container = document.querySelector('.container');
+    this.container = document.querySelector('.board');
 
     this.table = document.getElementById(tableId) || document.createElement('table');
     this.table.setAttribute('id', tableId);

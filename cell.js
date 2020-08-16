@@ -88,6 +88,10 @@ class Cell {
     return this._flagged;
   }
 
+  get exploded() {
+    return this.mined && this.checked;
+  }
+
   get checked() {
     return this._checked;
   }
