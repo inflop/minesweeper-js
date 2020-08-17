@@ -26,12 +26,12 @@ td {
 }
 
 .board tr td {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
     background-color: lightgray;
     font-weight: bolder;
-    font-size: smaller;
+    font-size: x-small;
     vertical-align: middle;
 }
 

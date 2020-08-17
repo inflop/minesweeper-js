@@ -22,7 +22,6 @@ class Game {
   _onComplete(e) {
     if (!e) return;
 
-    console.log(e.detail);
     const state = e.detail.state;
     const msg = `You ${state === BoardState.EXPLODED ? 'lost' : 'won'}`;
     const color = (state === BoardState.EXPLODED ? 'red' : 'green');
