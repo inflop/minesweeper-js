@@ -23,7 +23,7 @@ class Game {
     if (!e) return;
 
     const state = e.detail.state;
-    const msg = `You ${state === BoardState.EXPLODED ? 'lost' : 'won'}`;
+    const msg = `You ${state === BoardState.EXPLODED ? 'lost &#128078' : 'won &#128077'}`;
     const color = (state === BoardState.EXPLODED ? 'red' : 'green');
     //alert(msg);
     self.resultDiv.innerHTML = msg;

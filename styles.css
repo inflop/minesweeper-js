@@ -26,12 +26,12 @@ td {
 }
 
 .board tr td {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
     background-color: lightgray;
     font-weight: bolder;
-    font-size: x-small;
+    font-size: smaller;
     vertical-align: middle;
 }
 
@@ -45,9 +45,9 @@ td {
     background-color: initial;
 }
 
-.board tr td.checked.mined {
-    background-color: red;
-}
+/* .board tr td.checked.mined {
+    background-color: orangered;
+} */
 
 input {
     max-width: 50px;
