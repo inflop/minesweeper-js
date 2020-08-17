@@ -11,7 +11,12 @@ class Game {
     this.renderer = new BoardRenderer(this.board);
     this.renderer.refreshBoard();
 
+    this.resultDiv = document.querySelector('.summary-result');
+    this._clear();
+
     this.board.addEventListener('onComplete', this._onComplete, false);
+
+    self = this;
   }
 
   _onComplete(e) {
@@ -20,7 +25,14 @@ class Game {
     console.log(e.detail);
     const state = e.detail.state;
     const msg = `You ${state === BoardState.EXPLODED ? 'lost' : 'won'}`;
-    alert(msg);
+    const color = (state === BoardState.EXPLODED ? 'red' : 'green');
+    //alert(msg);
+    self.resultDiv.innerHTML = msg;
+    self.resultDiv.style.color = color;
+  }
+
+  _clear() {
+    this.resultDiv.innerHTML = '';
   }
 
   get config() {

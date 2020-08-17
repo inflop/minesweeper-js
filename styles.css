@@ -10,6 +10,10 @@ html {
     margin: 10px;
 }
 
+.summary {
+    margin: 10px;
+}
+
 table,
 th,
 td {
@@ -43,4 +47,8 @@ td {
 
 .board tr td.checked.mined {
     background-color: red;
+}
+
+input {
+    max-width: 50px;
 }

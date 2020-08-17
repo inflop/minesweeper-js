@@ -18,9 +18,9 @@ class Config {
     this._cols = cols;
     this._minesPercentage = minesPercentage;
 
-    this._totalCount = this._rows * this._cols;
-    this._minesCount = Math.round(this._totalCount * (this._minesPercentage / 100));
-    this._emptyCount = this._totalCount - this._minesCount;
+    this._totalNumber = this._rows * this._cols;
+    this._minesNumber = Math.round(this._totalNumber * (this._minesPercentage / 100));
+    this._emptyNumber = this._totalNumber - this._minesNumber;
   }
 
   get rows() {
@@ -35,15 +35,15 @@ class Config {
     return this._minesPercentage;
   }
 
-  get totalCount() {
-    return this._totalCount;
+  get totalNumber() {
+    return this._totalNumber;
   }
 
-  get minesCount() {
-    return this._minesCount;
+  get minesNumber() {
+    return this._minesNumber;
   }
 
-  get emptyCount() {
-    return this._emptyCount;
+  get emptyNumber() {
+    return this._emptyNumber;
   }
 }

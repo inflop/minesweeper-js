@@ -221,10 +221,10 @@ class Board {
   }
 
   _fillMatrix() {
-    let cells = new Array(this.config.totalCount);
+    let cells = new Array(this.config.totalNumber);
     for (let i = 0; i < cells.length; i++) {
       let cellId = `f_${i}`;
-      let mined = (i >= this.config.emptyCount);
+      let mined = (i >= this.config.emptyNumber);
       cells[i] = new Cell(cellId, mined);
     }
 

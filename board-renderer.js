@@ -78,7 +78,7 @@ class BoardRenderer {
   }
 
   _getCellContent(cell) {
-    const charMine = '&#9728;'
+    const charMine = '&#10040;'
     const charFlag = '&#9873;'
 
     const showInnerHtml = cell.revealed || cell.flagged || (cell.checked && (cell.hasMinedNeighbors || cell.mined));
