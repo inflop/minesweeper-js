@@ -1,9 +1,10 @@
 "use strict";
 
 const BoardState = {
-  NONE: 0,
-  DEMINED: 1,
-  EXPLODED: 2
+  UNMODIFIED: 0,
+  MODIFIED: 1,
+  DEMINED: 2,
+  EXPLODED: 3
 };
 
 class Board {
@@ -13,7 +14,10 @@ class Board {
     }
 
     this.config = config;
-    this._state = BoardState.NONE;
+    this._state = BoardState.UNMODIFIED;
+
+    this._flaggedCellsCount = 0;
+    this._checkedCellsCount = 0;
 
     this._createMatrix();
     this._fillMatrix();
@@ -50,8 +54,9 @@ class Board {
     }
 
     cell.check();
-    this._checkBoardState();
+    this._updateBoardState();
     this._checkNeighbors(cell);
+    this._onChange();
   }
 
   /**
@@ -61,23 +66,52 @@ class Board {
   toggle(cellId) {
     let cell = this._getCellById(cellId);
     cell.toggleFlag();
-    this._checkBoardState();
+    this._updateBoardState();
+    this._onChange();
   }
 
   _complete() {
     this._completed = true;
     this._disableAndReveal();
-    this.dispatchEvent(new CustomEvent("onComplete", { detail: { state: this._state }}));
+    this.dispatchEvent(new CustomEvent("complete", {
+      detail: {
+        state: this._state
+      }
+    }));
   }
 
   get completed() {
     return this._completed;
   }
 
-  _checkBoardState() {
+  _onChange() {
+    this.dispatchEvent(new CustomEvent("change", {
+      detail: {
+        flaggedCellsCount: this._flaggedCellsCount,
+        checkedCellsCount: this._checkedCellsCount,
+        boardState: this._state
+      }
+    }));
+    if (this._state === BoardState.UNMODIFIED) {
+      this._state = BoardState.MODIFIED;
+    }
+  }
+
+  get flaggedCellsCount() {
+    return this._flaggedCellsCount;
+  }
+
+  get checkedCellsCount() {
+    return this._checkedCellsCount;
+  }
+
+  _updateBoardState() {
     if (this._completed) {
       return;
     }
+
+    this._flaggedCellsCount = 0;
+    this._checkedCellsCount = 0;
 
     let existsExplodedCell = false;
     let existsNotFlaggedMinedCell = false;
@@ -87,9 +121,11 @@ class Board {
       for (let y = 0; y < this.matrix[x].length; y++) {
         let cell = this.matrix[x][y];
 
+        cell.flagged && this._flaggedCellsCount++;
+        cell.checked && this._checkedCellsCount++;
+
         if (cell.exploded) {
           existsExplodedCell = true;
-          break;
         }
 
         if (cell.mined && !cell.flagged) {
@@ -110,7 +146,7 @@ class Board {
       this._state = BoardState.DEMINED;
     }
 
-    if (this._state !== BoardState.NONE) {
+    if (this._state === BoardState.EXPLODED || this._state === BoardState.DEMINED) {
       this._complete();
     }
   }
