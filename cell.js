@@ -9,10 +9,10 @@ class Cell {
     this.id = id;
     this.mined = !!mined;
 
-    this.initializeDefaults();
+    this._initializeDefaults();
   }
 
-  initializeDefaults() {
+  _initializeDefaults() {
     this._minedNeighborsNumber = 0;
     this._flagged = false;
     this._checked = false;

@@ -32,15 +32,14 @@ class Board {
   }
 
   addEventListener(type, eventHandler) {
-    eventHandler();
-    var listener = new Object();
-    listener.type = type;
-    listener.eventHandler = eventHandler;
-    this.eventListeners.push(listener);
+    this.eventListeners.push({
+      type,
+      eventHandler
+    });
   }
 
   dispatchEvent(event) {
-    for (var i = 0; i < this.eventListeners.length; i++) {
+    for (let i = 0; i < this.eventListeners.length; i++) {
       if (event.type == this.eventListeners[i].type)
         this.eventListeners[i].eventHandler(event);
     }
