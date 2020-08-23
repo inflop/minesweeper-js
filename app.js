@@ -5,19 +5,59 @@ document.addEventListener('DOMContentLoaded', (e) => {
   const flaggedCounterDiv = document.querySelector('.flaggedCounter');
   const timerDiv = document.querySelector('.timer');
   const boardContainer = document.querySelector('.board');
-  const btnReset = document.getElementById('btnReset');
+  const btnNewGame = document.getElementById('btnNewGame');
+  const lnkBeginner = document.getElementById('lnkBeginner');
+  const lnkIntermediate = document.getElementById('lnkIntermediate');
+  const lnkExpert = document.getElementById('lnkExpert');
   let timer;
+  const minesPercentage = 15;
 
-  btnReset.addEventListener('click', () => newGame(), true);
+  const emojiStart = '&#128512;';
+  const emojiLost = '&#128553;';
+  const emojiWon = '&#128526;';
 
-  const newGame = () => {
-    clearInterval(timer);
-    resultDiv.innerHTML = '';
-    timerDiv.innerHTML = '0';
+  lnkBeginner.addEventListener('click', () => {
+    newBeginnerGame();
+  }, true);
 
+  lnkIntermediate.addEventListener('click', () => {
+    newIntermediateGame();
+  }, true);
+
+  lnkExpert.addEventListener('click', () => {
+    newExpertGame();
+  }, true);
+
+  btnNewGame.addEventListener('click', () => {
+    newCustomGame();
+  }, true);
+
+  const newCustomGame = () => {
     const rows = +document.getElementById("numRows").value || 10;
     const cols = +document.getElementById("numCols").value || 10;
-    const minesPercentage = 15;
+    newGame(rows, cols, minesPercentage);
+  };
+
+  const newBeginnerGame = () => {
+    newGame(8, 8, minesPercentage);
+  };
+
+  const newIntermediateGame = () => {
+    newGame(16, 16, minesPercentage);
+  };
+
+  const newExpertGame = () => {
+    newGame(16, 30, minesPercentage);
+  };
+
+  const newGame = (rows, cols, minesPercentage) => {
+    btnNewGame.innerHTML = emojiStart;
+    clearInterval(timer);
+    //resultDiv.innerHTML = '';
+    timerDiv.innerHTML = '0';
+
+    document.getElementById("numRows").value = rows;
+    document.getElementById("numCols").value = cols;
 
     const config = new Config(rows, cols, minesPercentage);
     const board = new Board(config);
@@ -27,7 +67,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
     game.addEventListener('start', (e) => {
       let second = 1;
       timer = setInterval(() => {
-        timerDiv.innerHTML = second++;
+        timerDiv.innerHTML = `${second++}s`;
       }, 1000);
     }, false);
 
@@ -36,23 +76,21 @@ document.addEventListener('DOMContentLoaded', (e) => {
     }, false);
 
     game.addEventListener('end', (e) => {
+      clearInterval(timer);
       const result = e.detail.result;
+
       if (result === GameResult.NONE) {
         throw 'Something went wrong. The result cannot be "NONE" at the end of the game';
       }
 
-      const msg = `You ${result === GameResult.LOST ? 'lost &#128078' : 'won &#128077'}`;
-      const color = (result === GameResult.LOST ? 'red' : 'green');
+      const emoji = (result === GameResult.LOST ? emojiLost : emojiWon);
+      btnNewGame.innerHTML = emoji;
 
-      resultDiv.innerHTML = msg;
-      resultDiv.style.color = color;
-
-      clearInterval(timer);
     }, false);
-
+    
     flaggedCounterDiv.innerHTML = config.minesNumber;
     game.new();
   };
 
-  newGame();
+  newBeginnerGame();
 });

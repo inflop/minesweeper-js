@@ -1,37 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>minesweeper</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="config.js"></script>
-    <script src="position.js"></script>
-    <script src="cell.js"></script>
-    <script src="board.js"></script>
-    <script src="board-renderer.js"></script>
-    <script src="game.js"></script>
-    <script src="app.js"></script>
-</head>
-<body>
-    <div class="container">
 
-        <div class="parameters">
-            <input id="numRows" type="number" min="10" max="100" placeholder="Rows">
-            x
-            <input id="numCols" type="number" min="10" max="100" placeholder="Cols">
-            <button id="btnReset" type="button">reset</button>
-        </div>
-        <div class="summary">
-            <div class="summary-result">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>minesweeper</title>
+  <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Lato:regular,bold&subset=Latin">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js"></script>
+  <script src="position.js"></script>
+  <script src="cell.js"></script>
+  <script src="board.js"></script>
+  <script src="board-renderer.js"></script>
+  <script src="game.js"></script>
+  <script src="app.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="summary">
+      <table>
+        <tr>
+          <td>
+            <div class="title">Rows</div>
+            <input id="numRows" type="number" min="8" max="100" placeholder="Rows">
+          </td>
+          <td>
+            <div class="levels">
+              <div>
+                <a id="lnkBeginner" href="#beginner">Beginner</a>
+              </div>
+              <div>
+                <a id="lnkIntermediate" href="#intermediate">Intermediate</a>
+              </div>
+              <div>
+                <a id="lnkExpert" href="#expert">Expert</a>
+              </div>
             </div>
-            <div class="timer">
-            </div>
+          </td>
+          <td>
+            <div class="title">Cols</div>
+            <input id="numCols" type="number" min="8" max="100" placeholder="Cols">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="title">Mines</div>
             <div class="flaggedCounter">
             </div>
-        </div>
-        <div class="board">
-        </div>
+          </td>
+          <td>
+            <button id="btnNewGame">NEW GAME</button>
+          </td>
+          <td>
+            <div class="title">Time</div>
+            <div class="timer">
+            </div>
+          </td>
+        </tr>
+      </table>
     </div>
+
+    <div class="board">
+    </div>
+  </div>
 </body>
+
 </html>
