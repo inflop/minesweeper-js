@@ -13,7 +13,7 @@ class Board {
       throw 'The configuration is not set.';
     }
 
-    this.config = config;
+    this._config = config;
     this._state = BoardState.UNMODIFIED;
 
     this._flaggedCellsCount = 0;
@@ -24,7 +24,7 @@ class Board {
     this._setNeighborsMinesNumber();
 
     this._completed = false;
-    this.eventListeners = [];
+    this._eventListeners = [];
   }
 
   get state() {
@@ -32,16 +32,16 @@ class Board {
   }
 
   addEventListener(type, eventHandler) {
-    this.eventListeners.push({
+    this._eventListeners.push({
       type,
       eventHandler
     });
   }
 
   dispatchEvent(event) {
-    for (let i = 0; i < this.eventListeners.length; i++) {
-      if (event.type == this.eventListeners[i].type)
-        this.eventListeners[i].eventHandler(event);
+    for (let i = 0; i < this._eventListeners.length; i++) {
+      if (event.type == this._eventListeners[i].type)
+        this._eventListeners[i].eventHandler(event);
     }
   }
 
@@ -190,8 +190,8 @@ class Board {
    */
   _getNeighborsCells(cell) {
     let neighborsCells = [];
-    for (let x = cell.position.x == 0 ? 0 : cell.position.x - 1; x <= cell.position.x + 1 && x < this.config.rows; x++) {
-      for (let y = cell.position.y == 0 ? 0 : cell.position.y - 1; y <= cell.position.y + 1 && y < this.config.cols; y++) {
+    for (let x = cell.position.x == 0 ? 0 : cell.position.x - 1; x <= cell.position.x + 1 && x < this._config.rows; x++) {
+      for (let y = cell.position.y == 0 ? 0 : cell.position.y - 1; y <= cell.position.y + 1 && y < this._config.cols; y++) {
         const currentCell = this.matrix[x][y];
         if (currentCell.id !== cell.id) {
           neighborsCells.push(currentCell);
@@ -239,9 +239,9 @@ class Board {
   }
 
   _createMatrix() {
-    this.matrix = new Array(this.config.rows);
+    this.matrix = new Array(this._config.rows);
     for (let i = 0; i < this.matrix.length; i++) {
-      this.matrix[i] = new Array(this.config.cols);
+      this.matrix[i] = new Array(this._config.cols);
     }
   }
 
@@ -256,10 +256,10 @@ class Board {
   }
 
   _fillMatrix() {
-    let cells = new Array(this.config.totalNumber);
+    let cells = new Array(this._config.totalNumber);
     for (let i = 0; i < cells.length; i++) {
       let cellId = `f_${i}`;
-      let mined = (i >= this.config.emptyNumber);
+      let mined = (i >= this._config.emptyNumber);
       cells[i] = new Cell(cellId, mined);
     }
 

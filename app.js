@@ -1,31 +1,32 @@
 "use strict";
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', (e) => {
   const resultDiv = document.querySelector('.summary-result');
   const flaggedCounterDiv = document.querySelector('.flaggedCounter');
   const timerDiv = document.querySelector('.timer');
-
+  const boardContainer = document.querySelector('.board');
   const btnReset = document.getElementById('btnReset');
+  let timer;
+
   btnReset.addEventListener('click', () => newGame(), true);
 
-  let timeRunner;
-
   const newGame = () => {
-    clearInterval(timeRunner);
+    clearInterval(timer);
     resultDiv.innerHTML = '';
     timerDiv.innerHTML = '0';
 
-    const rows = parseInt(document.getElementById("numRows").value) || 10;
-    const cols = parseInt(document.getElementById("numCols").value) || 10;
+    const rows = +document.getElementById("numRows").value || 10;
+    const cols = +document.getElementById("numCols").value || 10;
     const minesPercentage = 15;
 
     const config = new Config(rows, cols, minesPercentage);
-    flaggedCounterDiv.innerHTML = config.minesNumber;
+    const board = new Board(config);
+    const boardRenderer = new BoardRenderer(board, boardContainer);
+    const game = new Game(config, board, boardRenderer);
 
-    let game = new Game(config);
     game.addEventListener('start', (e) => {
       let second = 1;
-      timeRunner = setInterval(() => {
+      timer = setInterval(() => {
         timerDiv.innerHTML = second++;
       }, 1000);
     }, false);
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     game.addEventListener('end', (e) => {
       const result = e.detail.result;
       if (result === GameResult.NONE) {
-        throw 'Something went wrong. The result cannot be "NONE" at the end';
+        throw 'Something went wrong. The result cannot be "NONE" at the end of the game';
       }
 
       const msg = `You ${result === GameResult.LOST ? 'lost &#128078' : 'won &#128077'}`;
@@ -46,9 +47,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
       resultDiv.innerHTML = msg;
       resultDiv.style.color = color;
 
-      clearInterval(timeRunner);
+      clearInterval(timer);
     }, false);
 
+    flaggedCounterDiv.innerHTML = config.minesNumber;
     game.new();
   };
 

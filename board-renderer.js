@@ -1,12 +1,17 @@
 "use strict";
 
 class BoardRenderer {
-  constructor(board) {
+  constructor(board, boardContainer) {
     if (!board) {
       throw 'The board cannot be null';
     }
 
-    this.board = board;
+    if (!boardContainer) {
+      throw 'The board container cannot be null';
+    }
+
+    this._board = board;
+    this._boardContainer = boardContainer;
     this._createBoard();
 
     this.colors = {
@@ -23,21 +28,18 @@ class BoardRenderer {
 
   _createBoard() {
     const tableId = 'board';
-    this.container = document.querySelector('.board');
-
     this.table = document.getElementById(tableId) || document.createElement('table');
     this.table.setAttribute('id', tableId);
     this.table.className = 'board';
-
-    this.container.appendChild(this.table);
+    this._boardContainer.appendChild(this.table);
   }
 
   _renderBoard() {
     this._clearBoard();
-    for (let x = 0; x < this.board.matrix.length; x++) {
+    for (let x = 0; x < this._board.matrix.length; x++) {
       const row = this._createRow(x);
-      for (let y = 0; y < this.board.matrix[x].length; y++) {
-        let cell = this.board.matrix[x][y];
+      for (let y = 0; y < this._board.matrix[x].length; y++) {
+        let cell = this._board.matrix[x][y];
         const tableCell = this._createTableCell(y, cell, row);
       }
     }
@@ -49,10 +51,10 @@ class BoardRenderer {
     try {
       switch (event.button) {
         case 0: // left mouse button
-          this.board.check(cellId);
+          this._board.check(cellId);
           break;
         case 2: // right mouse button
-          this.board.toggle(cellId);
+          this._board.toggle(cellId);
           break;
         default:
           break;

@@ -7,17 +7,16 @@ const GameResult = {
 };
 
 class Game {
-  constructor(config) {
+  constructor(config, board, boardRenderer) {
     this._config = config;
-    this.eventListeners = [];
+    this._board = board;
+    this._boardRenderer = boardRenderer;
+    this._eventListeners = [];
   }
 
   new() {
-    this.board = new Board(this._config);
-    this.renderer = new BoardRenderer(this.board);
-    this.renderer.refreshBoard();
-
-    this.board.addEventListener('change', this._change.bind(this), false);
+    this._boardRenderer.refreshBoard();
+    this._board.addEventListener('change', this._change.bind(this), false);
     this._result = GameResult.NONE;
   }
 
@@ -64,16 +63,16 @@ class Game {
   }
 
   addEventListener(type, eventHandler) {
-    this.eventListeners.push({
+    this._eventListeners.push({
       type,
       eventHandler
     });
   }
 
   dispatchEvent(event) {
-    for (let i = 0; i < this.eventListeners.length; i++) {
-      if (event.type == this.eventListeners[i].type)
-        this.eventListeners[i].eventHandler(event);
+    for (let i = 0; i < this._eventListeners.length; i++) {
+      if (event.type == this._eventListeners[i].type)
+        this._eventListeners[i].eventHandler(event);
     }
   }
 }
