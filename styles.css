@@ -31,6 +31,14 @@ td {
   margin: auto;
 }
 
+.table-summary {
+  border: 0;
+}
+
+.table-summary td {
+  border: 0;
+}
+
 .board tr td {
   width: 18px;
   height: 18px;
