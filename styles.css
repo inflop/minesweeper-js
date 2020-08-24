@@ -37,6 +37,7 @@ td {
 
 .table-summary td {
   border: 0;
+  padding: 5px;
 }
 
 .board tr td {
