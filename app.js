@@ -87,10 +87,46 @@ document.addEventListener('DOMContentLoaded', (e) => {
       btnNewGame.innerHTML = emoji;
 
     }, false);
-    
+
     flaggedCounterDiv.innerHTML = config.minesNumber;
     game.new();
   };
 
   newBeginnerGame();
+
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const body = document.body;
+      if (body.classList.contains('theme-light')) {
+        body.classList.remove('theme-light');
+        body.classList.add('theme-dark');
+        localStorage.setItem('theme', 'dark');
+      } else if (body.classList.contains('theme-dark')) {
+        body.classList.remove('theme-dark');
+        body.classList.add('theme-light');
+        localStorage.setItem('theme', 'light');
+      } else {
+        // If no class, check system preference and switch to opposite
+        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+        if (prefersLight) {
+          body.classList.add('theme-dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          body.classList.add('theme-light');
+          localStorage.setItem('theme', 'light');
+        }
+      }
+    });
+  }
+
+  // Set theme on load from localStorage or system preference
+  (function() {
+    const theme = localStorage.getItem('theme');
+    if (theme === 'light') {
+      document.body.classList.add('theme-light');
+    } else if (theme === 'dark') {
+      document.body.classList.add('theme-dark');
+    }
+  })();
 });
