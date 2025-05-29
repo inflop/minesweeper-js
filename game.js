@@ -1,59 +1,62 @@
 "use strict";
 
-const GameResult = {
-  NONE: 0,
-  WON: 1,
-  LOST: 2
-};
 
 class Game {
-  constructor(config, board, boardRenderer) {
+  constructor(config, board, boardRenderer, gameState) {
     this._config = config;
     this._board = board;
     this._boardRenderer = boardRenderer;
+    this._gameState = gameState;
     this._eventListeners = [];
   }
 
   new() {
     this._boardRenderer.refreshBoard();
     this._board.addEventListener('change', this._change.bind(this), false);
-    this._result = GameResult.NONE;
+    this._gameState.reset();
   }
 
   _change(e) {
-    if (e.detail.boardState === BoardState.UNMODIFIED) {
+    if (!this._gameState.isStarted && e.detail.boardState === BoardState.MODIFIED) {
+      this._gameState.start();
       this.dispatchEvent(new CustomEvent("start"));
     }
 
     this._updateResultFromBoardState(e.detail.boardState);
 
+    this._gameState.updateCounts(
+      e.detail.flaggedCellsCount,
+      e.detail.checkedCellsCount,
+      this._config.minesNumber - e.detail.flaggedCellsCount
+    );
+
     this.dispatchEvent(new CustomEvent("change", {
       detail: {
-        flaggedCellsCount: e.detail.flaggedCellsCount,
-        checkedCellsCount: e.detail.checkedCellsCount,
-        flaggedMinesCount: this._config.minesNumber - e.detail.flaggedCellsCount,
-        result: this._result
+        flaggedCellsCount: this._gameState.flaggedCellsCount,
+        checkedCellsCount: this._gameState.checkedCellsCount,
+        flaggedMinesCount: this._gameState.flaggedMinesCount,
+        result: this._gameState.result
       }
     }));
 
-    const isEnd = (this._result === GameResult.LOST || this._result === GameResult.WON);
-    isEnd && this.dispatchEvent(new CustomEvent("end", {
-      detail: {
-        result: this._result
-      }
-    }));
+    if (this._gameState.isCompleted) {
+      this.dispatchEvent(new CustomEvent("end", {
+        detail: {
+          result: this._gameState.result
+        }
+      }));
+    }
   }
 
   _updateResultFromBoardState(boardState) {
     switch (boardState) {
       case BoardState.DEMINED:
-        this._result = GameResult.WON;
+        this._gameState.complete(GameResult.WON);
         break;
       case BoardState.EXPLODED:
-        this._result = GameResult.LOST;
+        this._gameState.complete(GameResult.LOST);
         break;
       default:
-        this._result = GameResult.NONE;
         break;
     }
   }

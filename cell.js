@@ -121,10 +121,8 @@ class Cell {
   }
 
   reveal() {
-    if (!this.mined) {
-      throw `Only mined cells can be revealed`;
-    }
-
+    if (!this.mined) return;
+    if (this._revealed) return;
     this.disable();
     this._revealed = true;
   }
