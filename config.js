@@ -1,17 +1,17 @@
 "use strict";
 
-class Config {
+export class Config {
   constructor(rows, cols, minesPercentage) {
     if ((rows || 0) < 5) {
-      throw 'The number of rows must be greater than 5';
+      throw new Error('The number of rows must be greater than 5');
     }
 
     if ((cols || 0) < 5) {
-      throw 'The number of columns must be greater than 5';
+      throw new Error('The number of columns must be greater than 5');
     }
 
     if ((minesPercentage || 0) === 0) {
-      throw 'The percentage of mines must be greater than zero';
+      throw new Error('The percentage of mines must be greater than zero');
     }
 
     this._rows = rows;

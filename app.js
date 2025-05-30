@@ -1,7 +1,18 @@
 "use strict";
 
-document.addEventListener('DOMContentLoaded', (e) => {
-  const resultDiv = document.querySelector('.summary-result');
+import { ThemeManager } from './theme-manager.js';
+import { Config } from './config.js';
+import { BoardGenerator } from './board-generator.js';
+import { BoardStateManager } from './board-state-manager.js';
+import { Board } from './board.js';
+import { BoardRenderer } from './board-renderer.js';
+import { GameState } from './game-state.js';
+import { Game } from './game.js';
+import { GameResult } from './states.js';
+import { GameTimer } from './game-timer.js';
+import { GAME_CONFIG, EMOJI } from './game-config.js';
+
+document.addEventListener('DOMContentLoaded', () => {
   const flaggedCounterDiv = document.querySelector('.flaggedCounter');
   const timerDiv = document.querySelector('.timer');
   const boardContainer = document.querySelector('.board');
@@ -9,124 +20,64 @@ document.addEventListener('DOMContentLoaded', (e) => {
   const lnkBeginner = document.getElementById('lnkBeginner');
   const lnkIntermediate = document.getElementById('lnkIntermediate');
   const lnkExpert = document.getElementById('lnkExpert');
-  let timer;
-  const minesPercentage = 15;
 
-  const emojiStart = '&#128512;';
-  const emojiLost = '&#128553;';
-  const emojiWon = '&#128526;';
+  // Initialize theme manager
+  new ThemeManager();
 
-  lnkBeginner.addEventListener('click', () => {
-    newBeginnerGame();
-  }, true);
+  let gameTimer;
 
-  lnkIntermediate.addEventListener('click', () => {
-    newIntermediateGame();
-  }, true);
-
-  lnkExpert.addEventListener('click', () => {
-    newExpertGame();
-  }, true);
-
-  btnNewGame.addEventListener('click', () => {
-    newCustomGame();
-  }, true);
-
-  const newCustomGame = () => {
-    const rows = +document.getElementById("numRows").value || 10;
-    const cols = +document.getElementById("numCols").value || 10;
-    newGame(rows, cols, minesPercentage);
-  };
-
-  const newBeginnerGame = () => {
-    newGame(8, 8, minesPercentage);
-  };
-
-  const newIntermediateGame = () => {
-    newGame(16, 16, minesPercentage);
-  };
-
-  const newExpertGame = () => {
-    newGame(16, 30, minesPercentage);
-  };
-
-  const newGame = (rows, cols, minesPercentage) => {
-    btnNewGame.innerHTML = emojiStart;
-    clearInterval(timer);
-    //resultDiv.innerHTML = '';
+  const handleNewGame = (rows, cols) => {
+    btnNewGame.innerHTML = EMOJI.start;
+    if (gameTimer) gameTimer.stop();
     timerDiv.innerHTML = '0';
 
     document.getElementById("numRows").value = rows;
     document.getElementById("numCols").value = cols;
 
-    const config = new Config(rows, cols, minesPercentage);
-    const board = new Board(config);
+    const config = new Config(rows, cols, GAME_CONFIG.minesPercentage);
+    const boardGenerator = new BoardGenerator();
+    const boardStateManager = new BoardStateManager(config);
+    const board = new Board(config, boardGenerator, boardStateManager);
     const boardRenderer = new BoardRenderer(board, boardContainer);
-    const game = new Game(config, board, boardRenderer);
+    const gameState = new GameState();
+    const game = new Game(config, board, boardRenderer, gameState);
+    gameTimer = new GameTimer((seconds) => {
+      timerDiv.innerHTML = `${seconds}s`;
+      gameState.updateTime(seconds);
+    });
 
-    game.addEventListener('start', (e) => {
-      let second = 1;
-      timer = setInterval(() => {
-        timerDiv.innerHTML = `${second++}s`;
-      }, 1000);
-    }, false);
+    game.addEventListener('start', () => {
+      gameTimer.start();
+    });
 
     game.addEventListener('change', (e) => {
-      flaggedCounterDiv.innerHTML = e.detail.flaggedMinesCount;
-    }, false);
+      flaggedCounterDiv.innerHTML = e.detail.flaggedMinesCount ?? e.detail.flaggedCellsCount ?? 0;
+    });
 
     game.addEventListener('end', (e) => {
-      clearInterval(timer);
+      gameTimer.stop();
       const result = e.detail.result;
-
       if (result === GameResult.NONE) {
-        throw 'Something went wrong. The result cannot be "NONE" at the end of the game';
+        throw new Error('Something went wrong. The result cannot be "NONE" at the end of the game');
       }
-
-      const emoji = (result === GameResult.LOST ? emojiLost : emojiWon);
+      const emoji = result === GameResult.LOST ? EMOJI.lost : EMOJI.won;
       btnNewGame.innerHTML = emoji;
-
-    }, false);
+    });
 
     flaggedCounterDiv.innerHTML = config.minesNumber;
     game.new();
   };
 
-  newBeginnerGame();
+  lnkBeginner.addEventListener('click', () => handleNewGame(GAME_CONFIG.beginner.rows, GAME_CONFIG.beginner.cols));
+  lnkIntermediate.addEventListener('click', () => handleNewGame(GAME_CONFIG.intermediate.rows, GAME_CONFIG.intermediate.cols));
+  lnkExpert.addEventListener('click', () => handleNewGame(GAME_CONFIG.expert.rows, GAME_CONFIG.expert.cols));
 
-  const themeToggle = document.getElementById('themeToggle');
-  if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-      const body = document.body;
-      if (body.classList.contains('theme-light')) {
-        body.classList.remove('theme-light');
-        body.classList.add('theme-dark');
-        localStorage.setItem('theme', 'dark');
-      } else if (body.classList.contains('theme-dark')) {
-        body.classList.remove('theme-dark');
-        body.classList.add('theme-light');
-        localStorage.setItem('theme', 'light');
-      } else {
-        // If no class, check system preference and switch to opposite
-        const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-        if (prefersLight) {
-          body.classList.add('theme-dark');
-          localStorage.setItem('theme', 'dark');
-        } else {
-          body.classList.add('theme-light');
-          localStorage.setItem('theme', 'light');
-        }
-      }
-    });
-  }
+  btnNewGame.addEventListener('click', () => {
+    const rows = +document.getElementById("numRows").value || 10;
+    const cols = +document.getElementById("numCols").value || 10;
+    handleNewGame(rows, cols);
+  });
 
-  // Set theme on load from localStorage or system preference
-  (function() {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'light') {
-      document.body.classList.add('theme-light');
-    } else if (theme === 'dark') {
-      document.body.classList.add('theme-dark');
-    }
-  })();
+  // Start with beginner level
+  handleNewGame(GAME_CONFIG.beginner.rows, GAME_CONFIG.beginner.cols);
 });

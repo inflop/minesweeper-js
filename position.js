@@ -1,13 +1,13 @@
 "use strict";
 
-class Position {
+export class Position {
   constructor(x, y) {
     if (isNaN(x)) {
-      throw 'x value must be a number';
+      throw new Error('x value must be a number');
     }
 
     if (isNaN(y)) {
-      throw 'y value must be a number';
+      throw new Error('y value must be a number');
     }
 
     this.x = x;
