@@ -1,6 +1,8 @@
 "use strict";
 
-class BoardStateManager {
+import { BoardState } from './states.js';
+
+export class BoardStateManager {
   constructor(config) {
     if (!config) {
       throw new Error('Configuration is required');
@@ -37,10 +39,10 @@ class BoardStateManager {
 
     for (let x = 0; x < matrix.length; x++) {
       for (let y = 0; y < matrix[x].length; y++) {
-        let cell = matrix[x][y];
+        const cell = matrix[x][y];
 
-        cell.flagged && this._flaggedCellsCount++;
-        cell.checked && this._checkedCellsCount++;
+        if (cell.flagged) this._flaggedCellsCount++;
+        if (cell.checked) this._checkedCellsCount++;
 
         if (cell.exploded) {
           existsExplodedCell = true;

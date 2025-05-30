@@ -1,13 +1,13 @@
 "use strict";
 
-class BoardRenderer {
+export class BoardRenderer {
   constructor(board, boardContainer) {
     if (!board) {
-      throw 'The board cannot be null';
+      throw new Error('The board cannot be null');
     }
 
     if (!boardContainer) {
-      throw 'The board container cannot be null';
+      throw new Error('The board container cannot be null');
     }
 
     this._board = board;
@@ -39,8 +39,8 @@ class BoardRenderer {
     for (let x = 0; x < this._board.matrix.length; x++) {
       const row = this._createRow(x);
       for (let y = 0; y < this._board.matrix[x].length; y++) {
-        let cell = this._board.matrix[x][y];
-        const tableCell = this._createTableCell(y, cell, row);
+        const cell = this._board.matrix[x][y];
+        this._createTableCell(y, cell, row);
       }
     }
   }
@@ -59,8 +59,8 @@ class BoardRenderer {
         default:
           break;
       }
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     }
 
     this.refreshBoard();
@@ -75,14 +75,13 @@ class BoardRenderer {
   }
 
   _createRow(index) {
-    const row = this.table.insertRow(index);
-    return row;
+    return this.table.insertRow(index);
   }
 
   _getCellContent(cell) {
-    const charExploded = '&#128165;'
-    const charMine = '&#128163;'
-    const charFlag = '&#128204;'
+    const charExploded = '&#128165;';
+    const charMine = '&#128163;';
+    const charFlag = '&#128204;';
 
     const showInnerHtml = cell.revealed || cell.flagged || (cell.checked && (cell.hasMinedNeighbors || cell.mined));
     if (!showInnerHtml) {
@@ -98,17 +97,13 @@ class BoardRenderer {
     }
 
     if (cell.mined) {
-      if (cell.checked) {
-        return charExploded;
-      }
-      return charMine;
+      return cell.checked ? charExploded : charMine;
     }
 
     return '';
   }
 
   _createTableCell(index, cell, row) {
-
     const tableCell = row.insertCell(index);
     tableCell.setAttribute("id", cell.id);
 

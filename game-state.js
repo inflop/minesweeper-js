@@ -1,11 +1,13 @@
 "use strict";
 
-class GameState {
+import { GameResult } from './states.js';
+
+export class GameState {
   constructor() {
     this._state = {
       isStarted: false,
       isCompleted: false,
-      result: null,
+      result: GameResult.NONE,
       flaggedCellsCount: 0,
       checkedCellsCount: 0,
       flaggedMinesCount: 0,
@@ -65,7 +67,7 @@ class GameState {
     this._state = {
       isStarted: false,
       isCompleted: false,
-      result: null,
+      result: GameResult.NONE,
       flaggedCellsCount: 0,
       checkedCellsCount: 0,
       flaggedMinesCount: 0,

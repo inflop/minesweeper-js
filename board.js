@@ -1,6 +1,8 @@
 "use strict";
 
-class Board {
+import { BoardState } from './states.js';
+
+export class Board {
   constructor(config, boardGenerator, boardStateManager) {
     if (!config) {
       throw new Error('The configuration is not set.');
@@ -23,21 +25,17 @@ class Board {
   }
 
   addEventListener(type, eventHandler) {
-    this._eventListeners.push({
-      type,
-      eventHandler
-    });
+    this._eventListeners.push({ type, eventHandler });
   }
 
   dispatchEvent(event) {
-    for (let i = 0; i < this._eventListeners.length; i++) {
-      if (event.type == this._eventListeners[i].type)
-        this._eventListeners[i].eventHandler(event);
-    }
+    this._eventListeners
+      .filter(listener => event.type === listener.type)
+      .forEach(listener => listener.eventHandler(event));
   }
 
   check(cellId) {
-    let cell = this._getCellById(cellId);
+    const cell = this._getCellById(cellId);
 
     if (cell.flagged) {
       return;
@@ -49,7 +47,7 @@ class Board {
   }
 
   toggle(cellId) {
-    let cell = this._getCellById(cellId);
+    const cell = this._getCellById(cellId);
     cell.toggleFlag();
     this._onChange();
   }
@@ -73,7 +71,7 @@ class Board {
   _disableAndReveal() {
     for (let x = 0; x < this._matrix.length; x++) {
       for (let y = 0; y < this._matrix[x].length; y++) {
-        let cell = this._matrix[x][y];
+        const cell = this._matrix[x][y];
         cell.disable();
         if (cell.mined) {
           cell.reveal();
@@ -87,10 +85,9 @@ class Board {
       return;
     }
 
-    let neighborsCells = this._getNeighborsCells(cell);
+    const neighborsCells = this._getNeighborsCells(cell);
 
-    for (let i = 0; i < neighborsCells.length; i++) {
-      const currentCell = neighborsCells[i];
+    for (const currentCell of neighborsCells) {
       if (!currentCell.checked && !currentCell.mined && !currentCell.flagged) {
         this.check(currentCell.id);
       }
@@ -98,11 +95,14 @@ class Board {
   }
 
   _getNeighborsCells(cell) {
-    let neighborsCells = [];
-    for (let x = cell.position.x == 0 ? 0 : cell.position.x - 1;
-         x <= cell.position.x + 1 && x < this._config.rows; x++) {
-      for (let y = cell.position.y == 0 ? 0 : cell.position.y - 1;
-           y <= cell.position.y + 1 && y < this._config.cols; y++) {
+    const neighborsCells = [];
+    const startX = cell.position.x === 0 ? 0 : cell.position.x - 1;
+    const startY = cell.position.y === 0 ? 0 : cell.position.y - 1;
+    const endX = Math.min(cell.position.x + 1, this._config.rows - 1);
+    const endY = Math.min(cell.position.y + 1, this._config.cols - 1);
+
+    for (let x = startX; x <= endX; x++) {
+      for (let y = startY; y <= endY; y++) {
         const currentCell = this._matrix[x][y];
         if (currentCell.id !== cell.id) {
           neighborsCells.push(currentCell);
@@ -119,7 +119,7 @@ class Board {
 
     for (let x = 0; x < this._matrix.length; x++) {
       for (let y = 0; y < this._matrix[x].length; y++) {
-        let cell = this._matrix[x][y];
+        const cell = this._matrix[x][y];
         if (cell.id === cellId) {
           return cell;
         }

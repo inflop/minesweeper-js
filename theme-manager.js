@@ -1,4 +1,4 @@
-class ThemeManager {
+export class ThemeManager {
   constructor() {
     this.themeToggle = document.getElementById('themeToggle');
     this.body = document.body;

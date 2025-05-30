@@ -1,7 +1,9 @@
 "use strict";
 
+import { BoardState } from './states.js';
+import { GameResult } from './states.js';
 
-class Game {
+export class Game {
   constructor(config, board, boardRenderer, gameState) {
     this._config = config;
     this._board = board;
@@ -12,7 +14,7 @@ class Game {
 
   new() {
     this._boardRenderer.refreshBoard();
-    this._board.addEventListener('change', this._change.bind(this), false);
+    this._board.addEventListener('change', this._change.bind(this));
     this._gameState.reset();
   }
 
@@ -66,16 +68,12 @@ class Game {
   }
 
   addEventListener(type, eventHandler) {
-    this._eventListeners.push({
-      type,
-      eventHandler
-    });
+    this._eventListeners.push({ type, eventHandler });
   }
 
   dispatchEvent(event) {
-    for (let i = 0; i < this._eventListeners.length; i++) {
-      if (event.type == this._eventListeners[i].type)
-        this._eventListeners[i].eventHandler(event);
-    }
+    this._eventListeners
+      .filter(listener => event.type === listener.type)
+      .forEach(listener => listener.eventHandler(event));
   }
 }

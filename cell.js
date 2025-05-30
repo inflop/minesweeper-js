@@ -1,9 +1,9 @@
 "use strict";
 
-class Cell {
+export class Cell {
   constructor(id, mined) {
     if (!id) {
-      throw "The cell's ID is required";
+      throw new Error("The cell's ID is required");
     }
 
     this.id = id;
@@ -43,7 +43,7 @@ class Cell {
 
   set minedNeighborsNumber(value) {
     if (this.mined) {
-      throw 'Cannot set the mined neighbors number on mined cell.';
+      throw new Error('Cannot set the mined neighbors number on mined cell.');
     }
 
     this._minedNeighborsNumber = value || 0;
@@ -55,29 +55,28 @@ class Cell {
 
   toggleFlag() {
     if (!this._flagged) {
-
       if (this._disabled) {
-        throw `Cannot flag disabled cell: '${this.id}'`;
+        throw new Error(`Cannot flag disabled cell: '${this.id}'`);
       }
 
       if (this._revealed) {
-        throw `Cannot flag revealed cell: '${this.id}'`;
+        throw new Error(`Cannot flag revealed cell: '${this.id}'`);
       }
 
       if (this._checked) {
-        throw `Cannot flag checked cell: '${this.id}'`;
+        throw new Error(`Cannot flag checked cell: '${this.id}'`);
       }
     } else {
       if (this._disabled) {
-        throw `Cannot unflag disabled cell: '${this.id}'`;
+        throw new Error(`Cannot unflag disabled cell: '${this.id}'`);
       }
 
       if (this._revealed) {
-        throw `Cannot unflag revealed cell: '${this.id}'`;
+        throw new Error(`Cannot unflag revealed cell: '${this.id}'`);
       }
 
       if (this._checked) {
-        throw `Cannot unflag checked cell: '${this.id}'`;
+        throw new Error(`Cannot unflag checked cell: '${this.id}'`);
       }
     }
 
@@ -98,19 +97,19 @@ class Cell {
 
   check() {
     if (this._disabled) {
-      throw `Cannot check disabled cell: '${this.id}'`;
+      throw new Error(`Cannot check disabled cell: '${this.id}'`);
     }
 
     if (this._revealed) {
-      throw `Cannot check revealed cell: '${this.id}'`;
+      throw new Error(`Cannot check revealed cell: '${this.id}'`);
     }
 
     if (this._checked) {
-      throw `The cell with: '${this.id}' is already checked`;
+      throw new Error(`The cell with: '${this.id}' is already checked`);
     }
 
     if (this._flagged) {
-      throw `Cannot check flagged cell: '${this.id}'`;
+      throw new Error(`Cannot check flagged cell: '${this.id}'`);
     }
 
     this._checked = true;
