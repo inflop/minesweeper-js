@@ -1,23 +1,23 @@
 "use strict";
 
 export class Cell {
-  constructor(id, mined) {
+  constructor(id, isMined) {
     if (!id) {
       throw new Error("The cell's ID is required");
     }
 
     this.id = id;
-    this.mined = !!mined;
+    this.isMined = !!isMined;
 
     this._initializeDefaults();
   }
 
   _initializeDefaults() {
     this._minedNeighborsNumber = 0;
-    this._flagged = false;
-    this._checked = false;
-    this._disabled = false;
-    this._revealed = false;
+    this._isFlagged = false;
+    this._isChecked = false;
+    this._isDisabled = false;
+    this._isRevealed = false;
     this._position = null;
   }
 
@@ -34,15 +34,15 @@ export class Cell {
   }
 
   get disabled() {
-    return this._disabled;
+    return this._isDisabled;
   }
 
   disable() {
-    this._disabled = true;
+    this._isDisabled = true;
   }
 
   set minedNeighborsNumber(value) {
-    if (this.mined) {
+    if (this.isMined) {
       throw new Error('Cannot set the mined neighbors number on mined cell.');
     }
 
@@ -54,58 +54,58 @@ export class Cell {
   }
 
   toggleFlag() {
-    if (this._disabled) {
-      throw new Error(`Cannot ${this._flagged ? 'unflag' : 'flag'} disabled cell: '${this.id}'`);
+    if (this._isDisabled) {
+      throw new Error(`Cannot ${this._isFlagged ? 'unflag' : 'flag'} disabled cell: '${this.id}'`);
     }
-    if (this._revealed) {
-      throw new Error(`Cannot ${this._flagged ? 'unflag' : 'flag'} revealed cell: '${this.id}'`);
+    if (this._isRevealed) {
+      throw new Error(`Cannot ${this._isFlagged ? 'unflag' : 'flag'} revealed cell: '${this.id}'`);
     }
-    if (this._checked) {
-      throw new Error(`Cannot ${this._flagged ? 'unflag' : 'flag'} checked cell: '${this.id}'`);
+    if (this._isChecked) {
+      throw new Error(`Cannot ${this._isFlagged ? 'unflag' : 'flag'} checked cell: '${this.id}'`);
     }
-    this._flagged = !this._flagged;
+    this._isFlagged = !this._isFlagged;
   }
 
   get flagged() {
-    return this._flagged;
+    return this._isFlagged;
   }
 
   get exploded() {
-    return this.mined && this.checked;
+    return this.isMined && this.checked;
   }
 
   get checked() {
-    return this._checked;
+    return this._isChecked;
   }
 
   check() {
-    if (this._disabled) {
+    if (this._isDisabled) {
       throw new Error(`Cannot check disabled cell: '${this.id}'`);
     }
 
-    if (this._revealed) {
+    if (this._isRevealed) {
       throw new Error(`Cannot check revealed cell: '${this.id}'`);
     }
 
-    if (this._checked) {
+    if (this._isChecked) {
       throw new Error(`The cell with: '${this.id}' is already checked`);
     }
 
-    if (this._flagged) {
+    if (this._isFlagged) {
       throw new Error(`Cannot check flagged cell: '${this.id}'`);
     }
 
-    this._checked = true;
+    this._isChecked = true;
   }
 
   get revealed() {
-    return this._revealed;
+    return this._isRevealed;
   }
 
   reveal() {
-    if (!this.mined) return;
-    if (this._revealed) return;
+    if (!this.isMined) return;
+    if (this._isRevealed) return;
     this.disable();
-    this._revealed = true;
+    this._isRevealed = true;
   }
 }

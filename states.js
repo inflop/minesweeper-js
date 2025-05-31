@@ -12,3 +12,11 @@ export const GameResult = {
   WON: 1,
   LOST: 2
 };
+
+export const CellState = {
+  HIDDEN: 0,
+  CHECKED: 1,
+  FLAGGED: 2,
+  DISABLED: 3,
+  REVEALED: 4
+};
