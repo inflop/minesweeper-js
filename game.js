@@ -2,6 +2,7 @@
 
 import { BoardState } from './states.js';
 import { GameResult } from './states.js';
+import { EventManager } from './event-manager.js';
 
 export class Game {
   constructor(config, board, boardRenderer, gameState) {
@@ -9,7 +10,7 @@ export class Game {
     this._board = board;
     this._boardRenderer = boardRenderer;
     this._gameState = gameState;
-    this._eventListeners = [];
+    this._eventManager = new EventManager();
   }
 
   new() {
@@ -68,12 +69,10 @@ export class Game {
   }
 
   addEventListener(type, eventHandler) {
-    this._eventListeners.push({ type, eventHandler });
+    this._eventManager.addEventListener(type, eventHandler);
   }
 
   dispatchEvent(event) {
-    this._eventListeners
-      .filter(listener => event.type === listener.type)
-      .forEach(listener => listener.eventHandler(event));
+    this._eventManager.dispatchEvent(event);
   }
 }

@@ -54,32 +54,15 @@ export class Cell {
   }
 
   toggleFlag() {
-    if (!this._flagged) {
-      if (this._disabled) {
-        throw new Error(`Cannot flag disabled cell: '${this.id}'`);
-      }
-
-      if (this._revealed) {
-        throw new Error(`Cannot flag revealed cell: '${this.id}'`);
-      }
-
-      if (this._checked) {
-        throw new Error(`Cannot flag checked cell: '${this.id}'`);
-      }
-    } else {
-      if (this._disabled) {
-        throw new Error(`Cannot unflag disabled cell: '${this.id}'`);
-      }
-
-      if (this._revealed) {
-        throw new Error(`Cannot unflag revealed cell: '${this.id}'`);
-      }
-
-      if (this._checked) {
-        throw new Error(`Cannot unflag checked cell: '${this.id}'`);
-      }
+    if (this._disabled) {
+      throw new Error(`Cannot ${this._flagged ? 'unflag' : 'flag'} disabled cell: '${this.id}'`);
     }
-
+    if (this._revealed) {
+      throw new Error(`Cannot ${this._flagged ? 'unflag' : 'flag'} revealed cell: '${this.id}'`);
+    }
+    if (this._checked) {
+      throw new Error(`Cannot ${this._flagged ? 'unflag' : 'flag'} checked cell: '${this.id}'`);
+    }
     this._flagged = !this._flagged;
   }
 
