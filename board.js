@@ -1,6 +1,7 @@
 "use strict";
 
 import { BoardState } from './states.js';
+import { EventManager } from './event-manager.js';
 
 export class Board {
   constructor(config, boardGenerator, boardStateManager) {
@@ -11,7 +12,8 @@ export class Board {
     this._config = config;
     this._boardGenerator = boardGenerator;
     this._boardStateManager = boardStateManager;
-    this._eventListeners = [];
+    this._matrix = [];
+    this._eventManager = new EventManager();
 
     this._matrix = this._boardGenerator.generateBoard(config);
   }
@@ -25,13 +27,11 @@ export class Board {
   }
 
   addEventListener(type, eventHandler) {
-    this._eventListeners.push({ type, eventHandler });
+    this._eventManager.addEventListener(type, eventHandler);
   }
 
   dispatchEvent(event) {
-    this._eventListeners
-      .filter(listener => event.type === listener.type)
-      .forEach(listener => listener.eventHandler(event));
+    this._eventManager.dispatchEvent(event);
   }
 
   check(cellId) {
