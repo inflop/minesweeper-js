@@ -33,16 +33,24 @@ export class BoardStateManager {
     this._flaggedCellsCount = 0;
     this._checkedCellsCount = 0;
 
+    const cellStates = this._analyzeCells(matrix);
+    this._updateBoardState(cellStates);
+
+    return {
+      state: this._state,
+      flaggedCellsCount: this._flaggedCellsCount,
+      checkedCellsCount: this._checkedCellsCount
+    };
+  }
+
+  _analyzeCells(matrix) {
     let existsExplodedCell = false;
     let existsNotFlaggedMinedCell = false;
     let existsNotCheckedEmptyCell = false;
 
-    for (let x = 0; x < matrix.length; x++) {
-      for (let y = 0; y < matrix[x].length; y++) {
-        const cell = matrix[x][y];
-
-        if (cell.flagged) this._flaggedCellsCount++;
-        if (cell.checked) this._checkedCellsCount++;
+    for (const element of matrix) {
+      for (const cell of element) {
+        this._updateCellCounts(cell);
 
         if (cell.exploded) {
           existsExplodedCell = true;
@@ -58,19 +66,26 @@ export class BoardStateManager {
       }
     }
 
-    if (existsExplodedCell) {
+    return {
+      existsExplodedCell,
+      existsNotFlaggedMinedCell,
+      existsNotCheckedEmptyCell
+    };
+  }
+
+  _updateCellCounts(cell) {
+    if (cell.flagged) this._flaggedCellsCount++;
+    if (cell.checked) this._checkedCellsCount++;
+  }
+
+  _updateBoardState(cellStates) {
+    if (cellStates.existsExplodedCell) {
       this._state = BoardState.EXPLODED;
-    } else if (!existsNotFlaggedMinedCell && !existsNotCheckedEmptyCell) {
+    } else if (!cellStates.existsNotFlaggedMinedCell && !cellStates.existsNotCheckedEmptyCell) {
       this._state = BoardState.DEMINED;
     } else if (this._state === BoardState.UNMODIFIED) {
       this._state = BoardState.MODIFIED;
     }
-
-    return {
-      state: this._state,
-      flaggedCellsCount: this._flaggedCellsCount,
-      checkedCellsCount: this._checkedCellsCount
-    };
   }
 
   reset() {
