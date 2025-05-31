@@ -83,7 +83,7 @@ export class BoardRenderer {
     const charMine = '&#128163;';
     const charFlag = '&#128204;';
 
-    const showInnerHtml = cell.revealed || cell.flagged || (cell.checked && (cell.hasMinedNeighbors || cell.mined));
+    const showInnerHtml = cell.revealed || cell.flagged || (cell.checked && (cell.hasMinedNeighbors || cell.isMined));
     if (!showInnerHtml) {
       return '';
     }
@@ -96,7 +96,7 @@ export class BoardRenderer {
       return cell.minedNeighborsNumber;
     }
 
-    if (cell.mined) {
+    if (cell.isMined) {
       return cell.checked ? charExploded : charMine;
     }
 
@@ -123,11 +123,11 @@ export class BoardRenderer {
     if (cell.checked) {
       tableCell.classList.add('checked');
 
-      if (cell.mined) {
+      if (cell.isMined) {
         tableCell.classList.add('mined');
       }
 
-      if (cell.hasMinedNeighbors && !cell.mined) {
+      if (cell.hasMinedNeighbors && !cell.isMined) {
         tableCell.style.color = this.colors[cell.minedNeighborsNumber];
       }
     }

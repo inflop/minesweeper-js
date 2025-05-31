@@ -73,8 +73,8 @@ export class BoardGenerator {
       for (let y = 0; y < this._matrix[x].length; y++) {
         const cell = this._matrix[x][y];
         const neighborsCells = this._getNeighborsCells(cell, config);
-        const minedNeighborsNumber = neighborsCells.filter(cell => cell.mined).length;
-        if (!cell.mined) {
+        const minedNeighborsNumber = neighborsCells.filter(cell => cell.isMined).length;
+        if (!cell.isMined) {
           cell.minedNeighborsNumber = minedNeighborsNumber;
         }
       }

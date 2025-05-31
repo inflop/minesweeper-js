@@ -73,7 +73,7 @@ export class Board {
       for (let y = 0; y < this._matrix[x].length; y++) {
         const cell = this._matrix[x][y];
         cell.disable();
-        if (cell.mined) {
+        if (cell.isMined) {
           cell.reveal();
         }
       }
@@ -81,14 +81,14 @@ export class Board {
   }
 
   _checkNeighbors(cell) {
-    if (cell.hasMinedNeighbors || cell.mined) {
+    if (cell.hasMinedNeighbors || cell.isMined) {
       return;
     }
 
     const neighborsCells = this._getNeighborsCells(cell);
 
     for (const currentCell of neighborsCells) {
-      if (!currentCell.checked && !currentCell.mined && !currentCell.flagged) {
+      if (!currentCell.checked && !currentCell.isMined && !currentCell.flagged) {
         this.check(currentCell.id);
       }
     }

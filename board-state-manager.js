@@ -48,11 +48,11 @@ export class BoardStateManager {
           existsExplodedCell = true;
         }
 
-        if (cell.mined && !cell.flagged) {
+        if (cell.isMined && !cell.flagged) {
           existsNotFlaggedMinedCell = true;
         }
 
-        if (!cell.mined && !cell.checked) {
+        if (!cell.isMined && !cell.checked) {
           existsNotCheckedEmptyCell = true;
         }
       }
