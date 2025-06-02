@@ -1,18 +1,14 @@
 "use strict";
 
-import { ThemeManager } from './theme-manager.js';
-import { Config } from './config.js';
-import { BoardGenerator } from './board-generator.js';
-import { BoardStateManager } from './board-state-manager.js';
-import { Board } from './board.js';
-import { BoardRenderer } from './board-renderer.js';
-import { GameState } from './game-state.js';
-import { Game } from './game.js';
-import { GameResult } from './states.js';
-import { GameTimer } from './game-timer.js';
-import { GAME_CONFIG, EMOJI } from './game-config.js';
+import { ThemeManager } from './infrastructure/ThemeManager.js';
+import { Config } from './domain/value-objects/GameConfiguration.js';
+import { GAME_CONFIG, EMOJI } from './common/GameSettings.js';
+import { GameTimer } from './infrastructure/GameTimer.js';
+import { GAME_CONSTANTS } from './common/GameConstants.js';
+import { createContainer, registerDevelopmentServices } from './infrastructure/ServiceRegistration.js';
+import { BoardRenderer } from './presentation/BoardRenderer.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const flaggedCounterDiv = document.querySelector('.flaggedCounter');
   const timerDiv = document.querySelector('.timer');
   const boardContainer = document.querySelector('.board');
@@ -24,7 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize theme manager
   new ThemeManager();
 
+  // Initialize DI container
+  let container;
+  let gameService;
+  let boardRenderer;
   let gameTimer;
+  let eventBus;
+
+  container = createContainer();
+  registerDevelopmentServices(container);
 
   const handleNewGame = (rows, cols) => {
     btnNewGame.innerHTML = EMOJI.start;
@@ -34,38 +38,66 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("numRows").value = rows;
     document.getElementById("numCols").value = cols;
 
+    // Clean up previous game
+    if (boardRenderer) {
+      boardRenderer.destroy();
+    }
+
     const config = new Config(rows, cols, GAME_CONFIG.minesPercentage);
-    const boardGenerator = new BoardGenerator();
-    const boardStateManager = new BoardStateManager(config);
-    const board = new Board(config, boardGenerator, boardStateManager);
-    const boardRenderer = new BoardRenderer(board, boardContainer);
-    const gameState = new GameState();
-    const game = new Game(config, board, boardRenderer, gameState);
+    
+    // Create game service
+    const gameServiceFactory = container.resolve('gameServiceFactory');
+    gameService = gameServiceFactory(config);
+    
+    // Get dependencies
+    const cellRenderer = container.resolve('cellRenderer');
+    eventBus = container.resolve('eventBus');
+    
+    // Create board renderer with the actual board from game service
+    const board = gameService.getBoard();
+    boardRenderer = new BoardRenderer(board, cellRenderer, gameService, eventBus, boardContainer);
+
+    // Setup game timer
     gameTimer = new GameTimer((seconds) => {
       timerDiv.innerHTML = `${seconds}s`;
-      gameState.updateTime(seconds);
     });
 
-    game.addEventListener('start', () => {
+    // Setup event listeners
+    setupEventListeners(config);
+
+    // Start the game
+    const startResult = gameService.startNewGame();
+    if (startResult.isSuccess) {
+      flaggedCounterDiv.innerHTML = config.minesNumber;
+      boardRenderer.refreshBoard();
+    } else {
+      console.error('Failed to start game:', startResult.error);
+    }
+  };
+
+  const setupEventListeners = (config) => {
+    // Subscribe to game events
+    eventBus.subscribe('first-move', () => {
       gameTimer.start();
     });
 
-    game.addEventListener('change', (e) => {
-      flaggedCounterDiv.innerHTML = e.detail.flaggedMinesCount ?? e.detail.flaggedCellsCount ?? 0;
-    });
-
-    game.addEventListener('end', (e) => {
-      gameTimer.stop();
-      const result = e.detail.result;
-      if (result === GameResult.NONE) {
-        throw new Error('Something went wrong. The result cannot be "NONE" at the end of the game');
+    eventBus.subscribe('cell-flagged', (event) => {
+      const gameStateResult = gameService.getGameState();
+      if (gameStateResult.isSuccess) {
+        const gameState = gameStateResult.value;
+        flaggedCounterDiv.innerHTML = gameState.remainingMines;
       }
-      const emoji = result === GameResult.LOST ? EMOJI.lost : EMOJI.won;
-      btnNewGame.innerHTML = emoji;
     });
 
-    flaggedCounterDiv.innerHTML = config.minesNumber;
-    game.new();
+    eventBus.subscribe('game-won', (event) => {
+      gameTimer.stop();
+      btnNewGame.innerHTML = EMOJI.won;
+    });
+
+    eventBus.subscribe('game-lost', (event) => {
+      gameTimer.stop();
+      btnNewGame.innerHTML = EMOJI.lost;
+    });
   };
 
   lnkBeginner.addEventListener('click', () => handleNewGame(GAME_CONFIG.beginner.rows, GAME_CONFIG.beginner.cols));
@@ -78,6 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
     handleNewGame(rows, cols);
   });
 
-  // Start with beginner level
+  // Auto-load beginner game on page load
   handleNewGame(GAME_CONFIG.beginner.rows, GAME_CONFIG.beginner.cols);
 });

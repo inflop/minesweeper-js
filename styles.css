@@ -165,7 +165,7 @@ input[type="number"]:focus {
   padding: 8px;
 }
 
-.board tr td {
+.board tr td, .cell {
   width: 28px;
   height: 28px;
   min-width: 28px;
@@ -187,23 +187,72 @@ input[type="number"]:focus {
   vertical-align: middle;
 }
 
-.board tr td:hover {
+.board tr td:hover, .cell:hover {
   background: var(--cell-bg-hover);
   border-color: var(--text-accent);
 }
 
-.board tr td.checked, .board tr td.revealed {
+.board tr td.checked, .board tr td.revealed, .cell.checked, .cell.revealed {
   cursor: default;
   background: var(--cell-bg-checked);
   color: var(--text-main);
   border-color: var(--cell-border-checked);
 }
 
-.board tr td.mined {
+.board tr td.mined, .cell.mined {
   background: var(--cell-mine);
   color: #fff;
   border-color: var(--cell-mine);
 }
+
+.board tr td.flagged, .cell.flagged {
+  background: var(--cell-bg);
+  color: var(--text-warning);
+  border-color: var(--text-warning);
+  font-size: 1.2em;
+}
+
+.board tr td.exploded, .cell.exploded {
+  background: var(--cell-mine);
+  color: #fff;
+  border-color: var(--cell-mine);
+  animation: explosion 0.3s ease-out;
+}
+
+.board tr td.disabled, .cell.disabled {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.board tr td.wrong-flag, .cell.wrong-flag {
+  background: var(--cell-mine);
+  color: #fff;
+  border-color: var(--cell-mine);
+  font-size: 1.1em;
+  animation: wrongFlag 0.5s ease-out;
+}
+
+@keyframes wrongFlag {
+  0% { transform: scale(1); background: var(--text-warning); }
+  50% { transform: scale(1.1); background: var(--cell-mine); }
+  100% { transform: scale(1); background: var(--cell-mine); }
+}
+
+@keyframes explosion {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Number colors for revealed cells with adjacent mines */
+.board tr td.number-1, .cell.number-1 { color: #403f3f !important; }
+.board tr td.number-2, .cell.number-2 { color: #d11141 !important; }
+.board tr td.number-3, .cell.number-3 { color: #00aedb !important; }
+.board tr td.number-4, .cell.number-4 { color: #f37735 !important; }
+.board tr td.number-5, .cell.number-5 { color: #ffc425 !important; }
+.board tr td.number-6, .cell.number-6 { color: #00b159 !important; }
+.board tr td.number-7, .cell.number-7 { color: #9ea19a !important; }
+.board tr td.number-8, .cell.number-8 { color: #ff4682 !important; }
 
 .flaggedCounter, .timer {
   font-size: 1.2em;
@@ -216,8 +265,7 @@ input[type="number"]:focus {
   .container {
     max-width: 98vw;
     padding: 10px 2vw 18px 2vw;
-  }
-  .board tr td {
+  }  .board tr td, .cell {
     width: 20px;
     height: 20px;
     min-width: 20px;
