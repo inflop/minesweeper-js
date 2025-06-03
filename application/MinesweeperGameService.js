@@ -3,11 +3,11 @@
 import { Result } from '../common/Result.js';
 import { TypeGuards } from '../common/TypeGuards.js';
 import { GAME_CONSTANTS } from '../common/GameConstants.js';
-import { 
-  GameStartedEvent, 
-  GameWonEvent, 
-  GameLostEvent, 
-  CellRevealedEvent, 
+import {
+  GameStartedEvent,
+  GameWonEvent,
+  GameLostEvent,
+  CellRevealedEvent,
   CellFlaggedEvent,
   FirstMoveEvent
 } from '../common/EventBus.js';
@@ -37,13 +37,13 @@ export class MinesweeperGameService {
     this.#gameState = this.#createInitialGameState();
     this.#isGameActive = true;
     this.#isFirstMove = true;
-    
+
     // Clear previous game over state
     this.#gameOverService.clearWrongFlags();
-    
+
     const event = new GameStartedEvent();
     this.#eventBus.publish(event);
-    
+
     return Result.success({
       message: 'New game started',
       gameState: { ...this.#gameState }
@@ -176,7 +176,7 @@ export class MinesweeperGameService {
   #createInitialGameState() {
     const totalCells = this.#board.bounds.rows * this.#board.bounds.cols;
     const mineCells = this.#board.getMineCells();
-    
+
     return Object.freeze({
       flaggedCellsCount: 0,
       revealedCellsCount: 0,
@@ -192,7 +192,7 @@ export class MinesweeperGameService {
 
   #updateGameStateAfterReveal(revealData) {
     const revealedCells = this.#board.getRevealedCells();
-    
+
     this.#gameState = Object.freeze({
       ...this.#gameState,
       revealedCellsCount: revealedCells.length
@@ -202,7 +202,7 @@ export class MinesweeperGameService {
   #updateGameStateAfterFlag(flagData) {
     const flaggedCells = this.#board.getFlaggedCells();
     const mineCells = this.#board.getMineCells();
-    
+
     this.#gameState = Object.freeze({
       ...this.#gameState,
       flaggedCellsCount: flaggedCells.length,
@@ -234,11 +234,11 @@ export class MinesweeperGameService {
   #endGame(result) {
     this.#isGameActive = false;
     this.#finalizeGameState(result);
-    
+
     if (result === GAME_CONSTANTS.GAME_RESULTS.LOST) {
       this.#handleGameLoss();
     }
-    
+
     this.#disableAllCells();
     this.#publishGameEndEvent(result);
   }
@@ -246,7 +246,7 @@ export class MinesweeperGameService {
   #finalizeGameState(result) {
     const endTime = new Date();
     const duration = endTime - this.#gameState.startTime;
-    
+
     this.#gameState = Object.freeze({
       ...this.#gameState,
       result,
@@ -281,7 +281,7 @@ export class MinesweeperGameService {
       for (const wrongFlagData of wrongFlagsResult.value) {
         // Mark in GameOverService for presentation layer
         this.#gameOverService.markCellAsWrongFlag(wrongFlagData.cell.id);
-        
+
         const cellEvent = new CellRevealedEvent({
           position: wrongFlagData.position,
           cell: wrongFlagData.cell,

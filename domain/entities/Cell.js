@@ -1,8 +1,8 @@
 "use strict";
 
-import { TypeGuards } from '../../common/TypeGuards.js';
-import { GAME_CONSTANTS } from '../../common/GameConstants.js';
-import { Result } from '../../common/Result.js';
+import { TypeGuards } from "../../common/TypeGuards.js";
+import { GAME_CONSTANTS } from "../../common/GameConstants.js";
+import { Result } from "../../common/Result.js";
 
 export class Cell {
   #id;
@@ -31,7 +31,8 @@ export class Cell {
     return this.#containsMine;
   }
 
-  get isMined() { // Backward compatibility
+  get isMined() {
+    // Backward compatibility
     return this.#containsMine;
   }
 
@@ -51,7 +52,8 @@ export class Cell {
     return this.#neighborMineCount;
   }
 
-  get minedNeighborsNumber() { // Backward compatibility
+  get minedNeighborsNumber() {
+    // Backward compatibility
     return this.#neighborMineCount;
   }
 
@@ -80,7 +82,6 @@ export class Cell {
     return this.#state === GAME_CONSTANTS.CELL_STATES.EXPLODED;
   }
 
-
   // Backward compatibility getters
   get flagged() {
     return this.isFlagged;
@@ -105,10 +106,10 @@ export class Cell {
   // Domain methods
   setNeighborMineCount(count) {
     if (this.#containsMine) {
-      return Result.failure('Cannot set neighbor mine count on a mine cell');
+      return Result.failure("Cannot set neighbor mine count on a mine cell");
     }
     if (!TypeGuards.isNumber(count) || count < 0 || count > 8) {
-      return Result.failure('Neighbor mine count must be between 0 and 8');
+      return Result.failure("Neighbor mine count must be between 0 and 8");
     }
 
     this.#neighborMineCount = count;
@@ -117,7 +118,7 @@ export class Cell {
 
   setAsMine() {
     if (this.#containsMine) {
-      return Result.failure('Cell already contains a mine');
+      return Result.failure("Cell already contains a mine");
     }
 
     this.#containsMine = true;
@@ -135,20 +136,20 @@ export class Cell {
 
   reveal() {
     if (this.isDisabled) {
-      return Result.failure('Cannot reveal disabled cell');
+      return Result.failure("Cannot reveal disabled cell");
     }
     if (this.isRevealed) {
-      return Result.failure('Cell is already revealed');
+      return Result.failure("Cell is already revealed");
     }
     if (this.isFlagged) {
-      return Result.failure('Cannot reveal flagged cell');
+      return Result.failure("Cannot reveal flagged cell");
     }
 
     this.#state = GAME_CONSTANTS.CELL_STATES.REVEALED;
     return Result.success({
       cellId: this.#id,
       containsMine: this.#containsMine,
-      neighborMineCount: this.#neighborMineCount
+      neighborMineCount: this.#neighborMineCount,
     });
   }
 
@@ -162,18 +163,18 @@ export class Cell {
 
   toggleFlag() {
     if (this.isDisabled) {
-      return Result.failure('Cannot flag disabled cell');
+      return Result.failure("Cannot flag disabled cell");
     }
     if (this.isRevealed) {
-      return Result.failure('Cannot flag revealed cell');
+      return Result.failure("Cannot flag revealed cell");
     }
 
     if (this.isFlagged) {
       this.#state = GAME_CONSTANTS.CELL_STATES.HIDDEN;
-      return Result.success({ action: 'unflagged', cellId: this.#id });
+      return Result.success({ action: "unflagged", cellId: this.#id });
     } else {
       this.#state = GAME_CONSTANTS.CELL_STATES.FLAGGED;
-      return Result.success({ action: 'flagged', cellId: this.#id });
+      return Result.success({ action: "flagged", cellId: this.#id });
     }
   }
 
@@ -184,13 +185,12 @@ export class Cell {
 
   explode() {
     if (!this.#containsMine) {
-      return Result.failure('Only mine cells can explode');
+      return Result.failure("Only mine cells can explode");
     }
 
     this.#state = GAME_CONSTANTS.CELL_STATES.EXPLODED;
     return Result.success({ cellId: this.#id });
   }
-
 
   canBeRevealed() {
     return this.isHidden && !this.isDisabled;
@@ -215,6 +215,8 @@ export class Cell {
   }
 
   toString() {
-    return `Cell(${this.#id}, mine: ${this.#containsMine}, state: ${this.#state})`;
+    return `Cell(${this.#id}, mine: ${this.#containsMine}, state: ${
+      this.#state
+    })`;
   }
 }

@@ -1,6 +1,6 @@
 "use strict";
 
-import { Result } from '../common/Result.js';
+import { Result } from "../common/Result.js";
 
 /**
  * Infrastructure service for managing game-over presentation effects

@@ -1,17 +1,17 @@
 "use strict";
 
-import { GAME_CONSTANTS } from '../../common/GameConstants.js';
+import { GAME_CONSTANTS } from "../../common/GameConstants.js";
 
 export class CellRenderingStrategy {
   canHandle(cell) {
-    throw new Error('canHandle method must be implemented');
+    throw new Error("canHandle method must be implemented");
   }
 
   render(cell) {
-    throw new Error('render method must be implemented');
+    throw new Error("render method must be implemented");
   }
   getClassName(cell) {
-    return 'cell';  // Base cell class required for CSS styling
+    return "cell"; // Base cell class required for CSS styling
   }
 }
 
@@ -21,10 +21,10 @@ export class HiddenCellStrategy extends CellRenderingStrategy {
   }
 
   render(cell) {
-    return '';
+    return "";
   }
   getClassName(cell) {
-    return 'cell';  // Hidden cells get base cell styling
+    return "cell"; // Hidden cells get base cell styling
   }
 }
 
@@ -37,7 +37,7 @@ export class FlaggedCellStrategy extends CellRenderingStrategy {
     return GAME_CONSTANTS.EMOJIS.FLAG;
   }
   getClassName(cell) {
-    return 'cell flagged';
+    return "cell flagged";
   }
 }
 
@@ -48,8 +48,9 @@ export class ExplodedMineStrategy extends CellRenderingStrategy {
 
   render(cell) {
     return GAME_CONSTANTS.EMOJIS.EXPLOSION;
-  }  getClassName(cell) {
-    return 'cell mined exploded';
+  }
+  getClassName(cell) {
+    return "cell mined exploded";
   }
 }
 
@@ -60,8 +61,9 @@ export class RevealedMineStrategy extends CellRenderingStrategy {
 
   render(cell) {
     return GAME_CONSTANTS.EMOJIS.MINE;
-  }  getClassName(cell) {
-    return 'cell mined checked';
+  }
+  getClassName(cell) {
+    return "cell mined checked";
   }
 }
 
@@ -84,10 +86,10 @@ export class EmptyCellStrategy extends CellRenderingStrategy {
   }
 
   render(cell) {
-    return '';
+    return "";
   }
   getClassName(cell) {
-    return 'cell checked';
+    return "cell checked";
   }
 }
 
@@ -108,7 +110,7 @@ export class WrongFlagStrategy extends CellRenderingStrategy {
   }
 
   getClassName(cell) {
-    return 'cell wrong-flag';
+    return "cell wrong-flag";
   }
 }
 
@@ -119,10 +121,13 @@ export class DisabledCellStrategy extends CellRenderingStrategy {
 
   render(cell) {
     if (cell.containsMine) {
-      return cell.isExploded ? GAME_CONSTANTS.EMOJIS.EXPLOSION : GAME_CONSTANTS.EMOJIS.MINE;
+      return cell.isExploded
+        ? GAME_CONSTANTS.EMOJIS.EXPLOSION
+        : GAME_CONSTANTS.EMOJIS.MINE;
     }
-    return cell.hasMinedNeighbors ? cell.neighborMineCount.toString() : '';
-  }  getClassName(cell) {
-    return cell.containsMine ? 'cell mined disabled' : 'cell checked disabled';
+    return cell.hasMinedNeighbors ? cell.neighborMineCount.toString() : "";
+  }
+  getClassName(cell) {
+    return cell.containsMine ? "cell mined disabled" : "cell checked disabled";
   }
 }

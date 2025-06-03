@@ -5,14 +5,14 @@ export class Container {
   #instances = new Map();
 
   register(key, factory, options = {}) {
-    if (typeof factory !== 'function') {
-      throw new TypeError('Factory must be a function');
+    if (typeof factory !== "function") {
+      throw new TypeError("Factory must be a function");
     }
 
     this.#dependencies.set(key, {
       factory,
       singleton: Boolean(options.singleton),
-      dependencies: options.dependencies || []
+      dependencies: options.dependencies || [],
     });
 
     return this; // For method chaining
@@ -31,11 +31,17 @@ export class Container {
 
     const dependency = this.#dependencies.get(key);
     if (!dependency) {
-      throw new Error(`Dependency '${key}' not found. Available dependencies: ${Array.from(this.#dependencies.keys()).join(', ')}`);
+      throw new Error(
+        `Dependency '${key}' not found. Available dependencies: ${Array.from(
+          this.#dependencies.keys()
+        ).join(", ")}`
+      );
     }
 
     // Resolve dependencies first
-    const resolvedDependencies = dependency.dependencies.map(dep => this.resolve(dep));
+    const resolvedDependencies = dependency.dependencies.map((dep) =>
+      this.resolve(dep)
+    );
 
     // Create instance
     const instance = dependency.factory(...resolvedDependencies, this);

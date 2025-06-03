@@ -8,8 +8,8 @@ import {
   NumberCellStrategy,
   EmptyCellStrategy,
   DisabledCellStrategy,
-  WrongFlagStrategy
-} from './strategies/CellRenderingStrategy.js';
+  WrongFlagStrategy,
+} from "./strategies/CellRenderingStrategy.js";
 
 export class CellRenderer {
   #strategies;
@@ -18,24 +18,25 @@ export class CellRenderer {
     // Order matters - more specific strategies should come first
     this.#strategies = [
       new WrongFlagStrategy(gameOverService), // Wrong flags have highest priority (must override disabled)
-      new DisabledCellStrategy(),             // Check disabled first as it overrides other states
-      new ExplodedMineStrategy(),             // Exploded mines have priority
-      new FlaggedCellStrategy(),              // Flagged cells override revealed state
-      new RevealedMineStrategy(),             // Revealed mines
-      new NumberCellStrategy(),               // Number cells (revealed with mine neighbors)
-      new EmptyCellStrategy(),                // Empty cells (revealed without mine neighbors)
-      new HiddenCellStrategy()                // Hidden cells (fallback)
+      new DisabledCellStrategy(), // Check disabled first as it overrides other states
+      new ExplodedMineStrategy(), // Exploded mines have priority
+      new FlaggedCellStrategy(), // Flagged cells override revealed state
+      new RevealedMineStrategy(), // Revealed mines
+      new NumberCellStrategy(), // Number cells (revealed with mine neighbors)
+      new EmptyCellStrategy(), // Empty cells (revealed without mine neighbors)
+      new HiddenCellStrategy(), // Hidden cells (fallback)
     ];
-  }  render(cell) {
+  }
+  render(cell) {
     const strategy = this.#findStrategy(cell);
     if (!strategy) {
       console.warn(`No rendering strategy found for cell: ${cell.toString()}`);
-      return { content: '', className: 'cell' };
+      return { content: "", className: "cell" };
     }
 
     const result = {
       content: strategy.render(cell),
-      className: strategy.getClassName(cell)
+      className: strategy.getClassName(cell),
     };
 
     return result;
@@ -50,7 +51,7 @@ export class CellRenderer {
   }
 
   #findStrategy(cell) {
-    return this.#strategies.find(strategy => strategy.canHandle(cell));
+    return this.#strategies.find((strategy) => strategy.canHandle(cell));
   }
 
   // Method to add custom strategies
@@ -65,7 +66,7 @@ export class CellRenderer {
   // Method to remove strategies
   removeStrategy(strategyClass) {
     this.#strategies = this.#strategies.filter(
-      strategy => !(strategy instanceof strategyClass)
+      (strategy) => !(strategy instanceof strategyClass)
     );
   }
 

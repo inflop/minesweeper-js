@@ -15,13 +15,13 @@ export class GameRules {
       for (let y = 0; y < board.bounds.cols; y++) {
         const position = { x, y };
         const cellResult = board.getCellAt(position);
-        
+
         if (cellResult.isFailure) {
           continue;
         }
 
         const cell = cellResult.value;
-        
+
         if (cell.containsMine) {
           // Mine cells can be flagged or hidden, but not revealed (unless exploded)
           if (cell.isRevealed && !cell.isExploded) {
@@ -44,7 +44,7 @@ export class GameRules {
       for (let y = 0; y < board.bounds.cols; y++) {
         const position = { x, y };
         const cellResult = board.getCellAt(position);
-        
+
         if (cellResult.isFailure) {
           continue;
         }
@@ -65,15 +65,19 @@ export class GameRules {
   isValidBoardSize(rows, cols) {
     const MIN_SIZE = 5;
     const MAX_SIZE = 100;
-    
-    return rows >= MIN_SIZE && rows <= MAX_SIZE &&
-           cols >= MIN_SIZE && cols <= MAX_SIZE;
+
+    return (
+      rows >= MIN_SIZE &&
+      rows <= MAX_SIZE &&
+      cols >= MIN_SIZE &&
+      cols <= MAX_SIZE
+    );
   }
 
   calculateOptimalMineCount(rows, cols, percentage = 15) {
     const totalCells = rows * cols;
     const mineCount = Math.floor((totalCells * percentage) / 100);
-    
+
     // Ensure at least 1 mine and at most totalCells - 1
     return Math.max(1, Math.min(mineCount, totalCells - 1));
   }
@@ -82,17 +86,17 @@ export class GameRules {
     const errors = [];
 
     if (!this.isValidBoardSize(config.rows, config.cols)) {
-      errors.push('Invalid board size');
+      errors.push("Invalid board size");
     }
 
     const totalCells = config.rows * config.cols;
     if (!this.isValidMineCount(config.minesNumber, totalCells)) {
-      errors.push('Invalid mine count');
+      errors.push("Invalid mine count");
     }
 
     return {
       isValid: errors.length === 0,
-      errors: errors
+      errors: errors,
     };
   }
 }

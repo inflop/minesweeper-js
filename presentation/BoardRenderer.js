@@ -1,8 +1,7 @@
 "use strict";
 
-import { GAME_CONSTANTS } from '../common/GameConstants.js';
-import { TypeGuards } from '../common/TypeGuards.js';
-import { Result } from '../common/Result.js';
+import { GAME_CONSTANTS } from "../common/GameConstants.js";
+import { Result } from "../common/Result.js";
 
 export class BoardRenderer {
   #board;
@@ -29,57 +28,61 @@ export class BoardRenderer {
     this.#clearBoard();
     this.#createBoardTable();
     this.#renderAllCells();
-    return Result.success('Board refreshed');
+    return Result.success("Board refreshed");
   }
-  
+
   updateCell(position) {
     const cellResult = this.#board.getCellAt(position);
     if (cellResult.isFailure) {
-      console.error('Failed to get cell:', cellResult.error);
+      console.error("Failed to get cell:", cellResult.error);
       return cellResult;
     }
 
     const cell = cellResult.value;
-    
+
     const cellElement = this.#cellElements.get(cell.id);
 
     if (!cellElement) {
-      console.error(`Cell element not found for position ${position.x},${position.y}`);
-      return Result.failure(`Cell element not found for position ${position.x},${position.y}`);
+      console.error(
+        `Cell element not found for position ${position.x},${position.y}`
+      );
+      return Result.failure(
+        `Cell element not found for position ${position.x},${position.y}`
+      );
     }
 
     const renderResult = this.#cellRenderer.render(cell);
-    
+
     cellElement.innerHTML = renderResult.content;
     cellElement.className = renderResult.className;
 
-    return Result.success('Cell updated');
+    return Result.success("Cell updated");
   }
 
   #initializeEventListeners() {
-    this.#eventBus.subscribe('cell-revealed', (event) => {
+    this.#eventBus.subscribe("cell-revealed", (event) => {
       this.updateCell(event.data.position);
     });
 
-    this.#eventBus.subscribe('cell-flagged', (event) => {
+    this.#eventBus.subscribe("cell-flagged", (event) => {
       this.updateCell(event.data.position);
     });
 
-    this.#eventBus.subscribe('game-won', () => {
+    this.#eventBus.subscribe("game-won", () => {
       this.#disableAllCellInteractions();
     });
 
-    this.#eventBus.subscribe('game-lost', () => {
+    this.#eventBus.subscribe("game-lost", () => {
       this.#disableAllCellInteractions();
     });
   }
 
   #createBoardTable() {
-    this.#tableElement = document.createElement('table');
-    this.#tableElement.className = 'board-table';
+    this.#tableElement = document.createElement("table");
+    this.#tableElement.className = "board-table";
 
     for (let x = 0; x < this.#board.bounds.rows; x++) {
-      const row = document.createElement('tr');
+      const row = document.createElement("tr");
 
       for (let y = 0; y < this.#board.bounds.cols; y++) {
         const position = { x, y };
@@ -99,7 +102,7 @@ export class BoardRenderer {
   }
 
   #createCellElement(cell, position) {
-    const cellElement = document.createElement('td');
+    const cellElement = document.createElement("td");
     const renderResult = this.#cellRenderer.render(cell);
 
     cellElement.innerHTML = renderResult.content;
@@ -109,38 +112,43 @@ export class BoardRenderer {
     cellElement.dataset.y = position.y.toString();
 
     // Add event listeners for cell interactions
-    cellElement.addEventListener('click', (event) => {
+    cellElement.addEventListener("click", (event) => {
       this.#handleCellClick(event, position);
     });
 
-    cellElement.addEventListener('contextmenu', (event) => {
+    cellElement.addEventListener("contextmenu", (event) => {
       event.preventDefault();
       this.#handleCellRightClick(event, position);
     });
 
-    cellElement.addEventListener('mousedown', (event) => {
+    cellElement.addEventListener("mousedown", (event) => {
       this.#handleCellMouseDown(event, position);
     });
 
     this.#cellElements.set(cell.id, cellElement);
     return cellElement;
-  }  #handleCellClick(event, position) {
+  }
+  #handleCellClick(event, position) {
     // Click event is always left button by default
     if (!this.#gameService) {
-      console.error('GameService is null or undefined!');
+      console.error("GameService is null or undefined!");
       return;
     }
-    
+
     const revealResult = this.#gameService.revealCell(position);
     if (revealResult.isFailure) {
-      console.warn(`Failed to reveal cell at ${position.x},${position.y}: ${revealResult.error}`);
+      console.warn(
+        `Failed to reveal cell at ${position.x},${position.y}: ${revealResult.error}`
+      );
     }
   }
 
   #handleCellRightClick(event, position) {
     const flagResult = this.#gameService.toggleCellFlag(position);
     if (flagResult.isFailure) {
-      console.warn(`Failed to flag cell at ${position.x},${position.y}: ${flagResult.error}`);
+      console.warn(
+        `Failed to flag cell at ${position.x},${position.y}: ${flagResult.error}`
+      );
     }
   }
 
@@ -162,7 +170,7 @@ export class BoardRenderer {
 
   #disableAllCellInteractions() {
     this.#cellElements.forEach((cellElement) => {
-      cellElement.style.pointerEvents = 'none';
+      cellElement.style.pointerEvents = "none";
     });
   }
 
@@ -177,6 +185,6 @@ export class BoardRenderer {
     this.#clearBoard();
     // Remove event listeners
     this.#eventBus.clear();
-    return Result.success('Board renderer destroyed');
+    return Result.success("Board renderer destroyed");
   }
 }

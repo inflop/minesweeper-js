@@ -29,14 +29,14 @@ export class Result {
 
   get value() {
     if (!this.#isSuccess) {
-      throw new Error('Cannot access value of failed result');
+      throw new Error("Cannot access value of failed result");
     }
     return this.#value;
   }
 
   get error() {
     if (this.#isSuccess) {
-      throw new Error('Cannot access error of successful result');
+      throw new Error("Cannot access error of successful result");
     }
     return this.#error;
   }

@@ -10,43 +10,43 @@ export class GameEvent {
 
 export class CellRevealedEvent extends GameEvent {
   constructor(cellData) {
-    super('cell-revealed', cellData);
+    super("cell-revealed", cellData);
   }
 }
 
 export class CellFlaggedEvent extends GameEvent {
   constructor(cellData) {
-    super('cell-flagged', cellData);
+    super("cell-flagged", cellData);
   }
 }
 
 export class GameStartedEvent extends GameEvent {
   constructor() {
-    super('game-started', {});
+    super("game-started", {});
   }
 }
 
 export class GameWonEvent extends GameEvent {
   constructor(stats) {
-    super('game-won', stats);
+    super("game-won", stats);
   }
 }
 
 export class GameLostEvent extends GameEvent {
   constructor(stats) {
-    super('game-lost', stats);
+    super("game-lost", stats);
   }
 }
 
 export class FirstMoveEvent extends GameEvent {
   constructor(data) {
-    super('first-move', data);
+    super("first-move", data);
   }
 }
 
 export class BoardStateChangedEvent extends GameEvent {
   constructor(boardState) {
-    super('board-state-changed', boardState);
+    super("board-state-changed", boardState);
   }
 }
 
@@ -54,8 +54,8 @@ export class EventBus {
   #listeners = new Map();
 
   subscribe(eventType, handler) {
-    if (typeof handler !== 'function') {
-      throw new TypeError('Event handler must be a function');
+    if (typeof handler !== "function") {
+      throw new TypeError("Event handler must be a function");
     }
 
     if (!this.#listeners.has(eventType)) {
@@ -79,11 +79,11 @@ export class EventBus {
 
   publish(event) {
     if (!(event instanceof GameEvent)) {
-      throw new TypeError('Event must be an instance of GameEvent');
+      throw new TypeError("Event must be an instance of GameEvent");
     }
 
     const handlers = this.#listeners.get(event.type) || new Set();
-    handlers.forEach(handler => {
+    handlers.forEach((handler) => {
       try {
         handler(event);
       } catch (error) {

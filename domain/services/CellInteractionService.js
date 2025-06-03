@@ -1,15 +1,16 @@
 "use strict";
 
-import { Result } from '../../common/Result.js';
-import { TypeGuards } from '../../common/TypeGuards.js';
-import { NeighborService } from './NeighborService.js';
+import { Result } from "../../common/Result.js";
+import { TypeGuards } from "../../common/TypeGuards.js";
+import { NeighborService } from "./NeighborService.js";
 
 export class CellInteractionService {
   constructor(gameRules) {
     this._gameRules = gameRules;
-  }  revealCell(board, position) {
+  }
+  revealCell(board, position) {
     if (!TypeGuards.isValidPosition(position)) {
-      return Result.failure('Invalid position provided');
+      return Result.failure("Invalid position provided");
     }
 
     const cellResult = board.getCellAt(position);
@@ -20,7 +21,7 @@ export class CellInteractionService {
     const cell = cellResult.value;
 
     if (!this._gameRules.canRevealCell(cell)) {
-      return Result.failure('Cell cannot be revealed according to game rules');
+      return Result.failure("Cell cannot be revealed according to game rules");
     }
 
     const revealResult = cell.reveal();
@@ -35,9 +36,9 @@ export class CellInteractionService {
         return explodeResult;
       }
       return Result.success({
-        type: 'explosion',
+        type: "explosion",
         cell: cell,
-        position: position
+        position: position,
       });
     }
 
@@ -49,23 +50,23 @@ export class CellInteractionService {
       }
 
       return Result.success({
-        type: 'cascade_reveal',
+        type: "cascade_reveal",
         cell: cell,
         position: position,
-        revealedNeighbors: revealNeighborsResult.value
+        revealedNeighbors: revealNeighborsResult.value,
       });
     }
 
     return Result.success({
-      type: 'single_reveal',
+      type: "single_reveal",
       cell: cell,
-      position: position
+      position: position,
     });
   }
 
   toggleCellFlag(board, position) {
     if (!TypeGuards.isValidPosition(position)) {
-      return Result.failure('Invalid position provided');
+      return Result.failure("Invalid position provided");
     }
 
     const cellResult = board.getCellAt(position);
@@ -76,7 +77,7 @@ export class CellInteractionService {
     const cell = cellResult.value;
 
     if (!this._gameRules.canFlagCell(cell)) {
-      return Result.failure('Cell cannot be flagged according to game rules');
+      return Result.failure("Cell cannot be flagged according to game rules");
     }
 
     const flagResult = cell.toggleFlag();
@@ -85,10 +86,10 @@ export class CellInteractionService {
     }
 
     return Result.success({
-      type: 'flag_toggle',
+      type: "flag_toggle",
       cell: cell,
       position: position,
-      action: flagResult.value.action
+      action: flagResult.value.action,
     });
   }
 
@@ -112,7 +113,7 @@ export class CellInteractionService {
     // Process cells in queue (breadth-first)
     while (cellsToProcess.length > 0) {
       const currentCell = cellsToProcess.shift();
-      
+
       // Check if cell hasn't been revealed already
       if (!currentCell.canBeRevealed()) {
         continue;
@@ -126,20 +127,29 @@ export class CellInteractionService {
 
       // Add to revealed cells list
       allRevealedCells.push({
-        type: currentCell.hasMinedNeighbors ? 'single_reveal' : 'cascade_reveal',
+        type: currentCell.hasMinedNeighbors
+          ? "single_reveal"
+          : "cascade_reveal",
         cell: currentCell,
-        position: currentCell.position
+        position: currentCell.position,
       });
 
       // If cell has no neighboring mines, add its neighbors to queue
       if (!currentCell.hasMinedNeighbors) {
-        const nextNeighborsResult = NeighborService.getNeighborCells(board, currentCell.position);
+        const nextNeighborsResult = NeighborService.getNeighborCells(
+          board,
+          currentCell.position
+        );
         if (nextNeighborsResult.isSuccess) {
           for (const nextNeighbor of nextNeighborsResult.value) {
             if (nextNeighbor.canBeRevealed() && !nextNeighbor.containsMine) {
               // Check if neighbor is not already in queue
-              if (!cellsToProcess.includes(nextNeighbor) && 
-                  !allRevealedCells.some(revealed => revealed.cell.id === nextNeighbor.id)) {
+              if (
+                !cellsToProcess.includes(nextNeighbor) &&
+                !allRevealedCells.some(
+                  (revealed) => revealed.cell.id === nextNeighbor.id
+                )
+              ) {
                 cellsToProcess.push(nextNeighbor);
               }
             }

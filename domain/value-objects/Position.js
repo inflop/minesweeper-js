@@ -1,7 +1,7 @@
 "use strict";
 
-import { TypeGuards } from '../../common/TypeGuards.js';
-import { NeighborCalculator } from '../../common/NeighborCalculator.js';
+import { TypeGuards } from "../../common/TypeGuards.js";
+import { NeighborCalculator } from "../../common/NeighborCalculator.js";
 
 export class Position {
   #x;
@@ -9,15 +9,15 @@ export class Position {
 
   constructor(x, y) {
     if (!TypeGuards.isNumber(x) || !TypeGuards.isNumber(y)) {
-      throw new TypeError('Position coordinates must be numbers');
+      throw new TypeError("Position coordinates must be numbers");
     }
 
     if (!Number.isInteger(x) || !Number.isInteger(y)) {
-      throw new TypeError('Position coordinates must be integers');
+      throw new TypeError("Position coordinates must be integers");
     }
 
     if (x < 0 || y < 0) {
-      throw new RangeError('Position coordinates must be non-negative');
+      throw new RangeError("Position coordinates must be non-negative");
     }
 
     this.#x = Object.freeze(x);
@@ -49,23 +49,28 @@ export class Position {
   }
 
   getNeighborPositions(bounds) {
-    return NeighborCalculator.calculateNeighbors(this, bounds)
-      .map(({ x, y }) => new Position(x, y));
+    return NeighborCalculator.calculateNeighbors(this, bounds).map(
+      ({ x, y }) => new Position(x, y)
+    );
   }
 
   manhattanDistanceTo(other) {
     if (!(other instanceof Position)) {
-      throw new TypeError('Other must be a Position instance');
+      throw new TypeError("Other must be a Position instance");
     }
     return Math.abs(this.#x - other.x) + Math.abs(this.#y - other.y);
   }
 
   isWithinBounds(bounds) {
     if (!TypeGuards.isValidBounds(bounds)) {
-      throw new TypeError('Invalid bounds provided');
+      throw new TypeError("Invalid bounds provided");
     }
-    return this.#x >= 0 && this.#x < bounds.rows && 
-           this.#y >= 0 && this.#y < bounds.cols;
+    return (
+      this.#x >= 0 &&
+      this.#x < bounds.rows &&
+      this.#y >= 0 &&
+      this.#y < bounds.cols
+    );
   }
 
   toString() {
@@ -77,7 +82,7 @@ export class Position {
   }
 
   static fromKey(key) {
-    const [x, y] = key.split(',').map(Number);
+    const [x, y] = key.split(",").map(Number);
     return new Position(x, y);
   }
 

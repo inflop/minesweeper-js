@@ -1,7 +1,7 @@
 "use strict";
 
-import { Result } from '../../common/Result.js';
-import { TypeGuards } from '../../common/TypeGuards.js';
+import { Result } from "../../common/Result.js";
+import { TypeGuards } from "../../common/TypeGuards.js";
 
 export class Board {
   #matrix;
@@ -10,10 +10,10 @@ export class Board {
 
   constructor(bounds, cellFactory) {
     if (!TypeGuards.isValidBounds(bounds)) {
-      throw new TypeError('Invalid bounds provided');
+      throw new TypeError("Invalid bounds provided");
     }
     if (!TypeGuards.isFunction(cellFactory)) {
-      throw new TypeError('Cell factory must be a function');
+      throw new TypeError("Cell factory must be a function");
     }
 
     this.#bounds = Object.freeze({ ...bounds });
@@ -26,16 +26,18 @@ export class Board {
   }
 
   get matrix() {
-    return this.#matrix.map(row => [...row]); // Return a copy to prevent external modification
+    return this.#matrix.map((row) => [...row]); // Return a copy to prevent external modification
   }
 
   getCellAt(position) {
     if (!TypeGuards.isValidPosition(position)) {
-      return Result.failure('Invalid position provided');
+      return Result.failure("Invalid position provided");
     }
 
     if (!this.#isPositionWithinBounds(position)) {
-      return Result.failure(`Position ${position.x},${position.y} is out of bounds`);
+      return Result.failure(
+        `Position ${position.x},${position.y} is out of bounds`
+      );
     }
 
     const cell = this.#matrix[position.x][position.y];
@@ -44,7 +46,7 @@ export class Board {
 
   getCellById(cellId) {
     if (!TypeGuards.isValidCellId(cellId)) {
-      return Result.failure('Invalid cell ID provided');
+      return Result.failure("Invalid cell ID provided");
     }
 
     const position = this.#cellPositionMap.get(cellId);
@@ -66,28 +68,28 @@ export class Board {
   }
 
   getMineCells() {
-    return this.getAllCells().filter(cell => cell.containsMine);
+    return this.getAllCells().filter((cell) => cell.containsMine);
   }
 
   getNonMineCells() {
-    return this.getAllCells().filter(cell => !cell.containsMine);
+    return this.getAllCells().filter((cell) => !cell.containsMine);
   }
 
   getFlaggedCells() {
-    return this.getAllCells().filter(cell => cell.isFlagged);
+    return this.getAllCells().filter((cell) => cell.isFlagged);
   }
 
   getRevealedCells() {
-    return this.getAllCells().filter(cell => cell.isRevealed);
+    return this.getAllCells().filter((cell) => cell.isRevealed);
   }
 
   getHiddenCells() {
-    return this.getAllCells().filter(cell => cell.isHidden);
+    return this.getAllCells().filter((cell) => cell.isHidden);
   }
 
   countCells(predicate) {
     if (!TypeGuards.isFunction(predicate)) {
-      return Result.failure('Predicate must be a function');
+      return Result.failure("Predicate must be a function");
     }
 
     try {
@@ -100,7 +102,7 @@ export class Board {
 
   forEachCell(callback) {
     if (!TypeGuards.isFunction(callback)) {
-      return Result.failure('Callback must be a function');
+      return Result.failure("Callback must be a function");
     }
 
     try {
@@ -111,7 +113,7 @@ export class Board {
           callback(cell, position, x, y);
         }
       }
-      return Result.success('Iteration completed');
+      return Result.success("Iteration completed");
     } catch (error) {
       return Result.failure(`Error during iteration: ${error.message}`);
     }
@@ -135,8 +137,12 @@ export class Board {
   }
 
   #isPositionWithinBounds(position) {
-    return position.x >= 0 && position.x < this.#bounds.rows &&
-           position.y >= 0 && position.y < this.#bounds.cols;
+    return (
+      position.x >= 0 &&
+      position.x < this.#bounds.rows &&
+      position.y >= 0 &&
+      position.y < this.#bounds.cols
+    );
   }
   placeMine(position) {
     const cellResult = this.getCellAt(position);
@@ -146,7 +152,7 @@ export class Board {
 
     const cell = cellResult.value;
     if (cell.containsMine) {
-      return Result.failure('Cell already contains a mine');
+      return Result.failure("Cell already contains a mine");
     }
 
     // Set existing cell as mine instead of creating new instance
@@ -164,15 +170,17 @@ export class Board {
       const result = this.placeMine(position);
       results.push(result);
       if (result.isFailure) {
-        return Result.failure(`Failed to place mine at ${position.x},${position.y}: ${result.error}`);
+        return Result.failure(
+          `Failed to place mine at ${position.x},${position.y}: ${result.error}`
+        );
       }
     }
-    return Result.success(results.map(r => r.value));
+    return Result.success(results.map((r) => r.value));
   }
 
   clone() {
-    const clonedMatrix = this.#matrix.map(row =>
-      row.map(cell => cell.clone())
+    const clonedMatrix = this.#matrix.map((row) =>
+      row.map((cell) => cell.clone())
     );
 
     const clonedBoard = Object.create(Board.prototype);
@@ -193,8 +201,10 @@ export class Board {
       return false;
     }
 
-    if (this.#bounds.rows !== other.bounds.rows ||
-        this.#bounds.cols !== other.bounds.cols) {
+    if (
+      this.#bounds.rows !== other.bounds.rows ||
+      this.#bounds.cols !== other.bounds.cols
+    ) {
       return false;
     }
 

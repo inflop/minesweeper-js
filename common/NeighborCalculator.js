@@ -1,14 +1,14 @@
 "use strict";
 
-import { TypeGuards } from './TypeGuards.js';
+import { TypeGuards } from "./TypeGuards.js";
 
 export class NeighborCalculator {
   static calculateNeighbors(position, bounds) {
     if (!TypeGuards.isValidPosition(position)) {
-      throw new TypeError('Invalid position provided');
+      throw new TypeError("Invalid position provided");
     }
     if (!TypeGuards.isValidBounds(bounds)) {
-      throw new TypeError('Invalid bounds provided');
+      throw new TypeError("Invalid bounds provided");
     }
 
     const neighbors = [];
